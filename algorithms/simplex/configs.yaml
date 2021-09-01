@@ -1,4 +1,5 @@
 ---
+name: simplex
 version: '0.1'
 dependencies:
 - scipy>0.18
