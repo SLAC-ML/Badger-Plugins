@@ -3,6 +3,7 @@ from badger import interface
 from operator import itemgetter
 import logging
 
+
 class Interface(interface.Interface):
 
     name = 'silly'
@@ -31,9 +32,14 @@ class Interface(interface.Interface):
         return value
 
     def set_value(self, channel: str, value):
+        if channel not in self.channels:
+            logging.warn(f'Channel {channel} doesn\'t exist!')
+            return
+
         try:
             self.states[channel] = value
-            values = np.array([self.states[channel] for channel in self.channels[:-1]])
+            values = np.array([self.states[channel]
+                              for channel in self.channels[:-1]])
             self.states['norm'] = np.sqrt(np.sum(values ** 2))
         except KeyError:
             logging.warn(f'Channel {channel} doesn\'t exist!')
