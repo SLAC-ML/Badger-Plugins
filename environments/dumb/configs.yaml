@@ -1,0 +1,21 @@
+---
+name: naive
+version: '0.1'
+dependencies:
+- numpy
+- badger-opt
+environments:
+- silly
+- naive
+params:
+variables:
+- q1
+- q2
+- q3
+- q4
+- s1
+- s2
+observations:
+- l2
+- mean
+- l2_x_mean
