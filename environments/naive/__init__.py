@@ -1,5 +1,5 @@
 import numpy as np
-from badger import environment, get_env
+from badger import environment
 from badger.interface import Interface
 from operator import itemgetter
 import logging
@@ -7,18 +7,13 @@ import logging
 
 class Environment(environment.Environment):
 
-    name = 'silly'
+    name = 'naive'
     var_channel_map = {
-        'q1': 'c1',
-        'q2': 'c2',
-        'q3': 'c3',
-        'q4': 'c4',
+        's1': 'c5',
+        's2': 'c6',
     }
 
     def __init__(self, interface: Interface, params):
-        # ENV, configs = get_env('TNK')
-        # env = ENV(interface, configs['params'])
-        # print(env)
         super().__init__(interface, params)
 
     def get_var(self, var):
@@ -28,11 +23,17 @@ class Environment(environment.Environment):
         self.interface.set_value(self.var_channel_map[var], x)
 
     def get_obs(self, obs):
-        if obs == 'l1':
+        if obs == 'min':
             values = self.interface.get_values(
                 ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
-            return np.sum(np.abs(values))
-        elif obs == 'l2':
-            return self.interface.get_value('norm')
+            return np.min(values)
+        elif obs == 'max':
+            values = self.interface.get_values(
+                ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
+            return np.max(values)
+        elif obs == 'mean':
+            values = self.interface.get_values(
+                ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
+            return np.mean(values)
         else:
             logging.warn(f'Unsupported observation {obs}')

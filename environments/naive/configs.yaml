@@ -1,15 +1,14 @@
 ---
-name: silly
+name: naive
 version: '0.1'
 dependencies:
 - numpy
 - badger-opt
 params:
 variables:
-- q1
-- q2
-- q3
-- q4
+- s1
+- s2
 observations:
-- l1
-- l2
+- max
+- min
+- mean
