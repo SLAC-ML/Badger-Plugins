@@ -1,7 +1,18 @@
 ---
+name: silly
 version: '0.1'
 dependencies:
 - numpy
 - badger-opt
 params:
-  dimension: 2
+variables:
+- q1
+- q2
+- q3
+- q4
+observations:
+- l1
+- l2
+- max
+- min
+- mean
