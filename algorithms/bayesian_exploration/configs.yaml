@@ -1,0 +1,13 @@
+---
+name: bayesian_exploration
+version: "0.1"
+dependencies:
+  - xopt
+params:
+  n_initial_samples: 5
+  n_steps: 25
+  verbose: True
+  use_gpu: False
+  generator_options: # options for bayesian exploration acquisition function
+    batch_size: 1 # batch size for parallelized optimization
+    # sigma: [[0.01, 0.0], [0.0, 0.01]] # proximal biasing term
