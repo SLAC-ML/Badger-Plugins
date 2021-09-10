@@ -1,12 +1,10 @@
 ---
 name: simplex
-version: '0.1'
+version: "0.1"
 dependencies:
-- scipy>0.18
+  - scipy>0.18
 params:
-  dimension:
-    default: 2
-    range:
+  dimension: 2
   x0: [0, 0]
   isim:
   xtol: 1.0e-05
