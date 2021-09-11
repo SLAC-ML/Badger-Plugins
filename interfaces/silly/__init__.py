@@ -11,7 +11,8 @@ class Interface(interface.Interface):
     def __init__(self, params):
         super().__init__(params)
 
-        prefix, count = itemgetter('channel_prefix', 'channel_count')(params)
+        prefix, count = itemgetter(
+            'channel_prefix', 'channel_count')(self.params)
 
         self.channels = []
         self.states = {}
@@ -21,6 +22,13 @@ class Interface(interface.Interface):
 
         self.channels.append('norm')
         self.states['norm'] = 0
+
+    @staticmethod
+    def get_default_params():
+        return {
+            'channel_prefix': 'c',
+            'channel_count': 4
+        }
 
     def get_value(self, channel: str):
         try:
