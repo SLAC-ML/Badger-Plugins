@@ -36,20 +36,22 @@ class Environment(environment.Environment):
             'some_array': np.array([1, 2, 3]),
         }
 
-    def get_var(self, var):
-        try:
-            value = self.variables[var]
-        except KeyError:
-            logging.warn(f'Variable {var} doesn\'t exist!')
-            value = None
+    @staticmethod
+    def list_vars():
+        return ['x1', 'x2']
 
-        return value
+    @staticmethod
+    def list_obses():
+        return ['y1', 'y2', 'c1', 'c2', 'some_array']
 
-    def set_var(self, var, x):
-        if var not in self.variables.keys():
-            logging.warn(f'Variable {var} doesn\'t exist!')
-            return
+    @staticmethod
+    def get_default_params():
+        return None
 
+    def _get_var(self, var):
+        return self.variables[var]
+
+    def _set_var(self, var, x):
         self.variables[var] = x
 
         # Filling up the observations
@@ -63,11 +65,5 @@ class Environment(environment.Environment):
         self.observations['c1'] = constraints[0]
         self.observations['c2'] = constraints[1]
 
-    def get_obs(self, obs):
-        try:
-            value = self.observations[obs]
-        except KeyError:
-            logging.warn(f'Unsupported observation {obs}')
-            value = None
-
-        return value
+    def _get_obs(self, obs):
+        return self.observations[obs]

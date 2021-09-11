@@ -4,13 +4,3 @@ description: "Constrainted test function TNK. See Table V in https://www.iitk.ac
 version: "0.1"
 dependencies:
   - numpy
-params:
-variables:
-  - x1
-  - x2
-observations:
-  - y1
-  - y2
-  - c1
-  - c2
-  - some_array
