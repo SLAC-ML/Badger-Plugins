@@ -1,8 +1,6 @@
 import numpy as np
 from badger import environment
 from badger.interface import Interface
-from operator import itemgetter
-import logging
 
 
 class Environment(environment.Environment):
@@ -16,13 +14,25 @@ class Environment(environment.Environment):
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
 
-    def get_var(self, var):
+    @staticmethod
+    def list_vars():
+        return ['s1', 's2']
+
+    @staticmethod
+    def list_obses():
+        return ['max', 'min', 'mean']
+
+    @staticmethod
+    def get_default_params():
+        return None
+
+    def _get_var(self, var):
         return self.interface.get_value(self.var_channel_map[var])
 
-    def set_var(self, var, x):
+    def _set_var(self, var, x):
         self.interface.set_value(self.var_channel_map[var], x)
 
-    def get_obs(self, obs):
+    def _get_obs(self, obs):
         if obs == 'min':
             values = self.interface.get_values(
                 ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
@@ -35,5 +45,3 @@ class Environment(environment.Environment):
             values = self.interface.get_values(
                 ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
             return np.mean(values)
-        else:
-            logging.warn(f'Unsupported observation {obs}')

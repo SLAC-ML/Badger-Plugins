@@ -13,28 +13,45 @@ class Environment(environment.Environment):
         super().__init__(interface, params)
         Silly, configs_silly = get_env('silly')
         Naive, configs_naive = get_env('naive')
-        self.env_silly = Silly(interface, None)
-        self.env_naive = Naive(interface, None)
+        self.env_silly = Silly(interface, configs_silly['params'])
+        self.env_naive = Naive(interface, configs_naive['params'])
 
-    def get_var(self, var):
-        value = self.env_silly.get_var(var) or self.env_naive.get_var(var)
-        if value is None:
-            logging.warn(f'Unsupported variable {var}')
+    @staticmethod
+    def list_vars():
+        return ['q1', 'q2', 'q3', 'q4', 's1', 's2']
+
+    @staticmethod
+    def list_obses():
+        return ['l2', 'mean', 'l2_x_mean']
+
+    @staticmethod
+    def get_default_params():
         return None
 
-    def set_var(self, var, x):
+    def _get_var(self, var):
+        try:
+            return self.env_silly.get_var(var)
+        except Exception:
+            pass
+
+        try:
+            return self.env_naive.get_var(var)
+        except Exception:
+            pass
+
+        logging.warn(f'Invalid variable {var}')
+        return None
+
+    def _set_var(self, var, x):
         if var.startswith('q'):
             self.env_silly.set_var(var, x)
         else:
             self.env_naive.set_var(var, x)
 
-    def get_obs(self, obs):
+    def _get_obs(self, obs):
         if obs == 'l2':
             return self.env_silly.get_obs(obs)
         elif obs == 'mean':
             return self.env_naive.get_obs(obs)
         elif obs == 'l2_x_mean':
-            print(self.interface.get_values(['c1', 'c2', 'c3', 'c4', 'c5', 'c6']))
             return self.env_silly.get_obs('l2') * self.env_naive.get_obs('mean')
-        else:
-            logging.warn(f'Unsupported observation {obs}')
