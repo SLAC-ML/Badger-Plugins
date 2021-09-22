@@ -1,0 +1,148 @@
+import logging
+import numpy as np
+from badger import environment
+from badger.interface import Interface
+from badger.utils import norm, denorm
+
+
+class Environment(environment.Environment):
+
+    name = 'multinormal'
+
+    def __init__(self, interface: Interface, params):
+        super().__init__(interface, params)
+
+        self.setup_params()
+
+    @staticmethod
+    def list_vars():
+        return [f'sim_device_{i + 1}' for i in range(10)]
+
+    @staticmethod
+    def list_obses():
+        return ['energy', 'sim_objective', 'stdev', 'snr']
+
+    @staticmethod
+    def get_default_params():
+        return {
+            'ndims': 10,
+            'points': 1,
+            'ebeam_energy': 7,  # GeV
+            'bg_noise': 0.064,
+            'sig_noise_scale_factor': 0.109,
+            'noise_scale_factor': 1.0,
+            'offset_nsigma': 2.0,
+            'low_limits': -5.0,
+            'high_limits': 5.0,
+        }
+
+    def _get_var(self, var):
+        low = self.params['low_limits']
+        high = self.params['high_limits']
+
+        idx = self.pvdict[var]
+        value = self.x[-1, idx]
+        x = norm(value, low, high)
+
+        return x
+
+    def _set_var(self, var, x):
+        low = self.params['low_limits']
+        high = self.params['high_limits']
+
+        value = denorm(x, low, high)
+        idx = self.pvdict[var]
+        self.x[-1, idx] = value
+
+    def _get_obs(self, obs):
+        if obs == 'energy':
+            return self.params['ebeam_energy']
+        elif obs == 'sim_objective':
+            self.measure()
+            if hasattr(self.y, '__iter__'):
+                return self.y[0]
+            else:
+                return self.y
+        elif obs == 'stdev':
+            return self.stdev
+        elif obs == 'snr':
+            return self.mean / self.stdev_nsample
+
+    def measure(self):
+        # let this method update means and stdevs
+        dx = self.x - self.offsets
+        # print(self.x)
+
+        # set result mean (perturb by noise below)
+        self.mean = abs(self.sigAmp * np.exp(-0.5 *
+                        dx @ self.invcovarmat @ dx.T))
+
+        # set resulting 1 sample noise (nsample noise below)
+        self.stdev = np.abs(self.bgNoise) + \
+            np.abs(self.sigNoiseScaleFactor) * np.sqrt(self.mean)
+        self.stdev = abs(self.noiseScaleFactor) * self.stdev
+
+        # perturb mean by nsample noise
+        # self.y = np.array(
+        #     [self.mean + np.random.normal(0., self.stdev, self.mean.shape)
+        #      for i in range(int(self.points))])
+        self.y = np.random.normal(self.mean[0][0], self.stdev[0][0], self.params['points'])
+
+    def setup_params(self):
+        # Scales the magnitude of the distance between start and goal so that the distance has a zscore of nsigma
+        offset_nsigma = self.params['offset_nsigma']
+        ndims = self.params['ndims']
+        offsets = np.random.randn(ndims)
+        # Peak location is an array
+        self.offsets = np.round(
+            offsets * offset_nsigma / np.linalg.norm(offsets), 2)
+        # widths of the marginalized distributions
+        self.projected_widths = np.ones(ndims)
+        # correlations between coordinates
+        self.correlation_matrix = np.diag(np.ones(ndims))
+
+        self.y = -1
+        self.mean = 0
+        self.stdev = 0
+        self.stdev_nsample = 0
+
+        self.sigAmp = 1.0
+        self.bgNoise = self.params['bg_noise']
+        # amp_noise / sqrt(amp_signal) ~= 0.193/np.sqrt(3.113) = 0.109
+        self.sigNoiseScaleFactor = self.params['sig_noise_scale_factor']
+        # easy to use this as a noise toggle
+        self.noiseScaleFactor = self.params['noise_scale_factor']
+
+        self.numBatchSamples = 1
+        self.SNRgoal = 0  # specify SNR goal; if 0, then numSamples is unchanged
+        # a limit on how long people would want to wait if changing numSamples to achieve the SNRgoal
+        self.maxNumSamples = 30 * 120
+
+        self.last_numSamples = self.params['points']
+        self.last_SNR = self.SNRgoal
+
+        self.store_moments()
+
+    def store_moments(self):
+        # Check sizes
+        if self.offsets.size != self.projected_widths.size \
+                or self.offsets.size != np.sqrt(self.correlation_matrix.size):
+            logging.error('Dimensions of input parameters are inconsistant')
+
+        # Store inputs
+        # list of peak widths projected to each axis
+        self.sigmas = np.abs(self.projected_widths)
+        self.corrmat = self.correlation_matrix  # correlation matrix of peaks
+        self.covarmat = np.dot(np.diag(self.sigmas),
+                               np.dot(self.corrmat, np.diag(self.sigmas)))  # matrix of covariances
+        # inverse of covariance matrix (computed once and stored)
+        self.invcovarmat = np.linalg.inv(self.covarmat)
+
+        # Seems like in fint, he wants to store the last random number generated by the last fcn call so let's store some random number
+        self.x = np.array(np.zeros(self.offsets.size), ndmin=2)
+
+        # Name these PVs
+        self.pvs = np.array(self.list_vars())
+        self.pvdict = {}  # for simple lookup
+        for i in range(len(self.pvs)):
+            self.pvdict[self.pvs[i]] = i  # objective fcn is last here
