@@ -1,5 +1,5 @@
 ---
-name: naive
+name: dumb
 version: "0.1"
 dependencies:
   - numpy
