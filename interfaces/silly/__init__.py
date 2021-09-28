@@ -8,7 +8,7 @@ class Interface(interface.Interface):
 
     name = 'silly'
 
-    def __init__(self, params):
+    def __init__(self, params=None):
         super().__init__(params)
 
         prefix, count = itemgetter(
@@ -27,7 +27,7 @@ class Interface(interface.Interface):
     def get_default_params():
         return {
             'channel_prefix': 'c',
-            'channel_count': 4
+            'channel_count': 8
         }
 
     def get_value(self, channel: str):
