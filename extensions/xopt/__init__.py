@@ -1,11 +1,4 @@
-import numpy as np
-from operator import itemgetter
-import logging
 from badger import extension
-from badger.utils import config_list_to_dict, normalize_config_vars
-
-from xopt import Xopt
-from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 
 
 class Extension(extension.Extension):
@@ -57,6 +50,12 @@ class Extension(extension.Extension):
             raise Exception(f'Algorithm {name} is not supported')
 
     def run(self, env, configs):
+        # Lazy import to make the CLI UX faster
+        from operator import itemgetter
+        from badger.utils import config_list_to_dict, normalize_config_vars
+        from xopt import Xopt
+        from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+
         routine_configs, algo_configs = itemgetter(
             'routine_configs', 'algo_configs')(configs)
 
