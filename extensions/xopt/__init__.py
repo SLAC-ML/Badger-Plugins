@@ -95,6 +95,7 @@ class Extension(extension.Extension):
         executor = PoolExecutor()
         X.run(executor=executor)
 
-        results = X.results
+        # The conda version of xopt is outdated and does not support this
+        # results = X.results
 
-        return results
+        # return results
