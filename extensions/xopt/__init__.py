@@ -1,4 +1,5 @@
 from badger import extension
+from xopt.configure import configure_algorithm
 
 
 class Extension(extension.Extension):
@@ -9,45 +10,28 @@ class Extension(extension.Extension):
         super().__init__()
 
     def list_algo(self):
-        return ['cnsga', 'bayesian_exploration']
+        from xopt import configure
+
+        return list(configure.KNOWN_ALGORITHMS.keys())
 
     def get_algo_config(self, name):
-        if name == 'cnsga':
+        from xopt import __version__, configure
+
+        try:
+            configs = configure.configure_algorithm({
+                'name': name,
+                'options': {},
+            })
             return {
-                'name': 'cnsga',
-                'version': '0.1',
-                'dependencies': [
-                    'xopt',
-                ],
-                'params': {
-                    'max_generations': 50,
-                    'population_size': 128,
-                    'crossover_probability': 0.9,
-                    'mutation_probability': 1.0,
-                    'selection': 'auto',
-                    'verbose': True,
-                    'population': None,
-                }
+                'name': name,
+                'version': __version__,
+                'dependencies': ['xopt'],
+                'function': configs['function'],
+                'params': configs['options'],
             }
-        elif name == 'bayesian_exploration':
-            return {
-                'name': 'bayesian_exploration',
-                'version': '0.1',
-                'dependencies': [
-                    'xopt',
-                ],
-                'params': {
-                    'n_initial_samples': 5,
-                    'n_steps': 25,
-                    'verbose': True,
-                    'use_gpu': False,
-                    'generator_options': {
-                        'batch_size': 1,
-                    }
-                }
-            }
-        else:
-            raise Exception(f'Algorithm {name} is not supported')
+        except Exception as e:
+            raise e
+            # raise Exception(f'Algorithm {name} is not supported')
 
     def run(self, env, configs):
         # Lazy import to make the CLI UX faster
@@ -94,7 +78,8 @@ class Extension(extension.Extension):
         executor = PoolExecutor()
         X.run(executor=executor)
 
-        # The conda version of xopt is outdated and does not support this
-        # results = X.results
-
-        # return results
+        # Make the return compatible with the older versions of xopt
+        try:
+            return X.results
+        except Exception:
+            return None
