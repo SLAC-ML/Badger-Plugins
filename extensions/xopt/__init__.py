@@ -1,5 +1,4 @@
 from badger import extension
-from xopt.configure import configure_algorithm
 
 
 class Extension(extension.Extension):
@@ -39,6 +38,7 @@ class Extension(extension.Extension):
         from badger.utils import config_list_to_dict, normalize_config_vars
         from xopt import Xopt
         from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+        from xopt.log import configure_logger
 
         routine_configs, algo_configs = itemgetter(
             'routine_configs', 'algo_configs')(configs)
@@ -52,7 +52,7 @@ class Extension(extension.Extension):
         config = {
             'xopt': {
                 'output_path': None,
-                'verbose': True,
+                'verbose': True,  # to be removed
             },
             'algorithm': {
                 'name': algo_configs['name'],
@@ -63,16 +63,19 @@ class Extension(extension.Extension):
                 'evaluate': evaluate,
             },
             'vocs': {
-                'name': routine_configs['name'],
-                'description': None,
-                'simulation': env.name,
-                'templates': None,
+                'name': routine_configs['name'],  # to be removed
+                'description': None,  # to be removed
+                'simulation': env.name,  # to be removed
+                'templates': None,  # to be removed
                 'variables': config_list_to_dict(normalize_config_vars(
                     routine_configs['variables'])),
                 'objectives': config_list_to_dict(routine_configs['objectives']),
                 'constraints': config_list_to_dict(routine_configs['constraints']),
             }
         }
+
+        # Set up logging
+        configure_logger()
 
         X = Xopt(config)
         executor = PoolExecutor()
