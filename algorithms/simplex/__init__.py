@@ -1,18 +1,19 @@
 import numpy as np
-import scipy as sp
+import scipy.optimize as sopt
 from operator import itemgetter
 import logging
 
+
 def optimize(evaluate, params):
-    D, x0, dev_steps, xtol, max_iter = \
-        itemgetter('dimension', 'x0', 'dev_steps', 'xtol', 'max_iter')(params)
+    D, x0, isteps, xtol, max_iter = \
+        itemgetter('dimension', 'x0', 'isteps', 'xtol', 'max_iter')(params)
 
     assert len(x0) == D, 'Dimension does not match!'
 
-    if dev_steps is None or len(dev_steps) != D:
+    if isteps is None or len(isteps) != D:
         logging.warn("Initial simplex is None")
         isim = None
-    elif np.count_nonzero(dev_steps) != D:
+    elif np.count_nonzero(isteps) != D:
         logging.warn("There is zero step. Initial simplex is None")
         isim = None
     else:
@@ -20,12 +21,19 @@ def optimize(evaluate, params):
         isim[0] = x0
         for i in range(D):
             vertex = np.zeros(D)
-            vertex[i] = dev_steps[i]
+            vertex[i] = isteps[i]
             isim[i + 1] = x0 + vertex
 
     logging.debug(f'ISIM = {isim}')
 
-    res = sp.optimize.fmin(evaluate, x0, maxiter=max_iter,
-        maxfun=max_iter, xtol=xtol, initial_simplex=isim)
+    def _evaluate(x):
+        y, _, _ = evaluate(np.array(x).reshape(1, -1))
+        y = y[0]
+        print(x, y)
+
+        return y
+
+    res = sopt.fmin(_evaluate, x0, maxiter=max_iter,
+                    maxfun=max_iter, xtol=xtol, initial_simplex=isim)
 
     return res

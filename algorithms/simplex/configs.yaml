@@ -6,6 +6,6 @@ dependencies:
 params:
   dimension: 2
   x0: [0, 0]
-  isim:
+  isteps:
   xtol: 1.0e-05
   max_iter: 100
