@@ -5,6 +5,7 @@ dependencies:
   - numpy
   - bayesian-optimization
 params:
+  dimension: 3
   init_points: 5
   n_iter: 40
   random_state: 1
