@@ -1,9 +1,6 @@
 import numpy as np
 from badger import environment
 from badger.interface import Interface
-from badger.utils import denorm
-from operator import itemgetter
-import logging
 
 
 # Pure number version
@@ -48,6 +45,10 @@ class Environment(environment.Environment):
     def get_default_params():
         return None
 
+    @classmethod
+    def _get_vrange(cls, var):
+        return [0, 3.14159]
+
     def _get_var(self, var):
         return self.variables[var]
 
@@ -55,10 +56,7 @@ class Environment(environment.Environment):
         self.variables[var] = x
 
         # Filling up the observations
-        ind = [
-            denorm(self.variables['x1'], self.BOUND_LOW[0], self.BOUND_UP[0]),
-            denorm(self.variables['x2'], self.BOUND_LOW[1], self.BOUND_UP[1]),
-        ]
+        ind = [self.variables['x1'], self.variables['x2']]
         objectives, constraints = TNK(ind)
         self.observations['y1'] = objectives[0]
         self.observations['y2'] = objectives[1]
