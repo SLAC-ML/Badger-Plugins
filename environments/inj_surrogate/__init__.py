@@ -8,6 +8,11 @@ from badger.interface import Interface
 class Environment(environment.Environment):
 
     name = 'inj_surrogate'
+    vranges = {
+        'SOL1:solenoid_field_scale': [0.44, 0.55],
+        'SQ01:b1_gradient': [-0.02, 0.02],
+        'CQ01:b1_gradient': [-0.02, 0.02],
+    }
 
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
@@ -55,6 +60,10 @@ class Environment(environment.Environment):
             'scaler_x': os.path.join(env_root, 'data', 'transformer_x.sav'),
             'scaler_y': os.path.join(env_root, 'data', 'transformer_y.sav'),
         }
+
+    @classmethod
+    def _get_vrange(cls, var):
+        return cls.vranges[var]
 
     def _get_var(self, var):
         x = self.variables[var]
