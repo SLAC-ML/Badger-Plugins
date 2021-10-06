@@ -1,0 +1,9 @@
+---
+name: inj_lcls
+version: "0.1"
+dependencies:
+  - numpy
+  - badger-opt
+  - matlab_wrapper
+interface:
+  - epics
