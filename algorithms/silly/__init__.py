@@ -1,17 +1,18 @@
 import numpy as np
 from operator import itemgetter
+from badger.utils import ParetoFront
+
 
 def optimize(evaluate, params):
     D, max_iter = itemgetter('dimension', 'max_iter')(params)
 
-    x_opt = None
-    y_opt = np.Inf
     for i in range(max_iter):
         x = np.random.rand(D).reshape(1, -1)
         y, _, _ = evaluate(x)
-        print(f'yo! {x}: {y}')
-        if y < y_opt:  # assume a minimize problem
-            x_opt = x
-            y_opt = y
+        if not i:
+            pf = ParetoFront(['MINIMIZE'] * y.shape[1])
 
-    return y_opt, x_opt
+        pf.is_dominated((x, y))
+    # print(len(pf.pareto_front) / max_iter)
+
+    return pf.pareto_front, pf.pareto_set
