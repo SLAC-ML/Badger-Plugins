@@ -52,7 +52,6 @@ class Extension(extension.Extension):
         config = {
             'xopt': {
                 'output_path': None,
-                'verbose': True,  # to be removed
             },
             'algorithm': {
                 'name': algo_configs['name'],
@@ -63,10 +62,6 @@ class Extension(extension.Extension):
                 'evaluate': evaluate,
             },
             'vocs': {
-                'name': routine_configs['name'],  # to be removed
-                'description': None,  # to be removed
-                'simulation': env.name,  # to be removed
-                'templates': None,  # to be removed
                 'variables': config_list_to_dict(normalize_config_vars(
                     routine_configs['variables'])),
                 'objectives': config_list_to_dict(routine_configs['objectives']),
