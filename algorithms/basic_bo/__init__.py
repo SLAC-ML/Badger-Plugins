@@ -23,7 +23,8 @@ def optimize(evaluate, params):
     optimizer = BayesianOptimization(
         f=_evaluate,
         pbounds=pbounds,
-        random_state=random_state
+        random_state=random_state,
+        verbose=0,
     )
 
     optimizer.maximize(
