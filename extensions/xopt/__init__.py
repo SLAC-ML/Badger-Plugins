@@ -35,7 +35,7 @@ class Extension(extension.Extension):
     def run(self, env, configs):
         # Lazy import to make the CLI UX faster
         from operator import itemgetter
-        from badger.utils import config_list_to_dict, normalize_config_vars
+        from badger.utils import config_list_to_dict
         from xopt import Xopt
         from concurrent.futures import ThreadPoolExecutor as PoolExecutor
         from xopt.log import configure_logger
@@ -62,8 +62,7 @@ class Extension(extension.Extension):
                 'evaluate': evaluate,
             },
             'vocs': {
-                'variables': config_list_to_dict(normalize_config_vars(
-                    routine_configs['variables'])),
+                'variables': config_list_to_dict(routine_configs['variables']),
                 'objectives': config_list_to_dict(routine_configs['objectives']),
                 'constraints': config_list_to_dict(routine_configs['constraints']),
             }
