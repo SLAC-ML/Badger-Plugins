@@ -4,3 +4,4 @@ version: "0.1"
 dependencies:
   - tensorflow
   - badger-opt
+  - scikit-learn==0.23.2
