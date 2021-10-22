@@ -32,22 +32,17 @@ class Extension(extension.Extension):
             raise e
             # raise Exception(f'Algorithm {name} is not supported')
 
-    def run(self, env, configs):
+    def optimize(self, evaluate, configs):
         # Lazy import to make the CLI UX faster
         from operator import itemgetter
         from badger.utils import config_list_to_dict
         from xopt import Xopt
         from concurrent.futures import ThreadPoolExecutor as PoolExecutor
         from xopt.log import configure_logger
+        from .utils import convert_evaluate
 
-        routine_configs, algo_configs = itemgetter(
-            'routine_configs', 'algo_configs')(configs)
-
-        def evaluate(inputs, extra_option='abc', **params):
-            env.set_vars_dict(inputs)
-            outputs = env.get_obses_dict()
-
-            return outputs
+        routine_configs, algo_configs, env_configs = itemgetter(
+            'routine_configs', 'algo_configs', 'env_configs')(configs)
 
         config = {
             'xopt': {
@@ -58,8 +53,8 @@ class Extension(extension.Extension):
                 'options': algo_configs['params'],
             },
             'simulation': {
-                'name': env.name,
-                'evaluate': evaluate,
+                'name': env_configs['name'],
+                'evaluate': convert_evaluate(evaluate, routine_configs),
             },
             'vocs': {
                 'variables': config_list_to_dict(routine_configs['variables']),
@@ -69,14 +64,11 @@ class Extension(extension.Extension):
         }
 
         # Set up logging
-        configure_logger()
+        configure_logger(level='ERROR')
 
         X = Xopt(config)
         executor = PoolExecutor()
         X.run(executor=executor)
 
-        # Make the return compatible with the older versions of xopt
-        try:
-            return X.results
-        except Exception:
-            return None
+        # This will raise an exception with older (< 0.4.3) versions of xopt
+        return X.results
