@@ -29,7 +29,6 @@ def optimize(evaluate, params):
     def _evaluate(x):
         y, _, _ = evaluate(np.array(x).reshape(1, -1))
         y = y[0]
-        print(x, y)
 
         return y
 
