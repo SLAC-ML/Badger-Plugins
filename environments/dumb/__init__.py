@@ -1,5 +1,6 @@
 import numpy as np
-from badger import environment, get_env
+from badger import environment
+from badger.factory import get_env
 from badger.interface import Interface
 from operator import itemgetter
 import logging
