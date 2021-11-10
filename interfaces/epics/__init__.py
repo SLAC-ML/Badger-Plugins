@@ -27,11 +27,9 @@ class Interface(interface.Interface):
             pv = epics.get_pv(channel)
             self.pvs[channel] = pv
 
-        if not pv.connected:
-            connected = pv.connect(1)
-            if not connected:
-                # TODO: consider throwing an exception here
-                return None
+        if not pv.wait_for_connection(1):
+            # TODO: consider throwing an exception here
+            return None
 
         while True:
             value = pv.get()
