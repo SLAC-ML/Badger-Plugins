@@ -28,8 +28,10 @@ class Interface(interface.Interface):
             self.pvs[channel] = pv
 
         if not pv.connected:
-            pv.connect()
-            # TODO: consider throwing an exception here
+            connected = pv.connect(1)
+            if not connected:
+                # TODO: consider throwing an exception here
+                return None
 
         while True:
             value = pv.get()
