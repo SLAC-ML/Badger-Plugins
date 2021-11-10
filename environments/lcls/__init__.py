@@ -3,7 +3,6 @@ import numpy as np
 from badger import environment
 from badger.interface import Interface
 from badger.stats import percent_80
-from badger.utils import norm, denorm
 import logging
 
 
@@ -70,15 +69,21 @@ class Environment(environment.Environment):
             'losses_fname': None,
         }
 
-    def _get_var(self, var):
-        raw_value = self.interface.get_value(var)
+    def _iget_vrange(self, var):
+        return self.pv_limits[var]
 
+    def iget_vranges(self, vars=None):
+        if vars is None:
+            return [self._iget_vrange(var) for var in self.list_vars()]
+        else:
+            return [self.iget_vrange(var) for var in vars]
+
+    def _get_var(self, var):
         # TODO: update pv limits every time?
-        return norm(raw_value, self.pv_limits[var][0], self.pv_limits[var][1])
+        return self.interface.get_value(var)
 
     def _set_var(self, var, x):
-        value = denorm(x, self.pv_limits[var][0], self.pv_limits[var][1])
-        self.interface.set_value(var, value)
+        self.interface.set_value(var, x)
 
     def _get_obs(self, obs):
         if obs == 'energy':
