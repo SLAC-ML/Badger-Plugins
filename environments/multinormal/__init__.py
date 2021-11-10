@@ -2,7 +2,6 @@ import logging
 import numpy as np
 from badger import environment
 from badger.interface import Interface
-from badger.utils import norm, denorm
 
 
 class Environment(environment.Environment):
@@ -37,22 +36,20 @@ class Environment(environment.Environment):
         }
 
     def _get_var(self, var):
-        low = self.params['low_limits']
-        high = self.params['high_limits']
+        # low = self.params['low_limits']
+        # high = self.params['high_limits']
 
         idx = self.pvdict[var]
         value = self.x[-1, idx]
-        x = norm(value, low, high)
 
-        return x
+        return value
 
     def _set_var(self, var, x):
-        low = self.params['low_limits']
-        high = self.params['high_limits']
+        # low = self.params['low_limits']
+        # high = self.params['high_limits']
 
-        value = denorm(x, low, high)
         idx = self.pvdict[var]
-        self.x[-1, idx] = value
+        self.x[-1, idx] = x
 
     def _get_obs(self, obs):
         if obs == 'energy':
