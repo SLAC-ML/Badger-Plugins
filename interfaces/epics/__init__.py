@@ -28,10 +28,15 @@ class Interface(interface.Interface):
             self.pvs[channel] = pv
 
         if not pv.connected:
+            pv.connect()
             # TODO: consider throwing an exception here
-            return None
-        else:
-            return pv.get()
+
+        while True:
+            value = pv.get()
+            if value is not None:
+                break
+
+        return value
 
     def set_value(self, channel: str, value):
         try:
