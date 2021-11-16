@@ -6,11 +6,11 @@ class Environment(environment.Environment):
 
     name = 'lcls_test'
     vranges = {
-        'SOLN:IN20:121:BCTRL': [0.44, 0.55],
-        'QUAD:IN20:121:BCTRL': [-0.02, 0.02],
-        'QUAD:IN20:122:BCTRL': [-0.02, 0.02],
-        'QUAD:IN20:371:BCTRL': [2.5, 2.9],
-        'QUAD:IN20:361:BCTRL': [-3.5, -2.75],
+        'SOLN:IN20:121:BCTRL': [0, 0.55],
+        'QUAD:IN20:121:BCTRL': [-0.015, 0.015],
+        'QUAD:IN20:122:BCTRL': [-0.015, 0.015],
+        'QUAD:IN20:371:BCTRL': [-20, 20],
+        'QUAD:IN20:361:BCTRL': [-20, 20],
     }
 
     def __init__(self, interface: Interface, params):
