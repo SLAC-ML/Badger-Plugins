@@ -11,7 +11,7 @@ class Interface(interface.Interface):
 
     name = 'epics'
 
-    def __init__(self, params):
+    def __init__(self, params=None):
         super().__init__(params)
 
         self.pvs = {}  # epics pvs (not values!)
