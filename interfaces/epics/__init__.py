@@ -31,14 +31,16 @@ class Interface(interface.Interface):
             # TODO: consider throwing an exception here
             return None
 
-        while True:
+        count_down = 2  # second
+        while count_down > 0:
             value = pv.get()
-            if value is not None:
-                break
+            if (value is not None) and (not np.isnan(value)):
+                return value
 
             time.sleep(0.1)
+            count_down -= 0.1
 
-        return value
+        raise Exception(f'PV {channel} readout ({value}) is invalid!')
 
     def set_value(self, channel: str, value):
         try:
