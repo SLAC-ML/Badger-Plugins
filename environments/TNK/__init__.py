@@ -45,7 +45,7 @@ class Environment(environment.Environment):
         return None
 
     def _get_vrange(self, var):
-        return [0, None]
+        return [0, 3.14159]
 
     def _get_var(self, var):
         return self.variables[var]
