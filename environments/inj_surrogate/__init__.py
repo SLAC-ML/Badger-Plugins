@@ -61,9 +61,8 @@ class Environment(environment.Environment):
             'scaler_y': os.path.join(env_root, 'data', 'transformer_y.sav'),
         }
 
-    @classmethod
-    def _get_vrange(cls, var):
-        return cls.vranges[var]
+    def _get_vrange(self, var):
+        return self.vranges[var]
 
     def _get_var(self, var):
         x = self.variables[var]

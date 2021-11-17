@@ -16,7 +16,6 @@ def TNK(individual):
 class Environment(environment.Environment):
 
     name = 'TNK'
-    BOUND_LOW, BOUND_UP = [0.0, 0.0], [3.14159, 3.14159]
 
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
@@ -45,9 +44,8 @@ class Environment(environment.Environment):
     def get_default_params():
         return None
 
-    @classmethod
-    def _get_vrange(cls, var):
-        return [0, 3.14159]
+    def _get_vrange(self, var):
+        return [0, None]
 
     def _get_var(self, var):
         return self.variables[var]

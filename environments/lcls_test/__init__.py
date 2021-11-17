@@ -5,13 +5,13 @@ from badger.interface import Interface
 class Environment(environment.Environment):
 
     name = 'lcls_test'
-    vranges = {
-        'SOLN:IN20:121:BCTRL': [0, 0.55],
-        'QUAD:IN20:121:BCTRL': [-0.015, 0.015],
-        'QUAD:IN20:122:BCTRL': [-0.015, 0.015],
-        'QUAD:IN20:371:BCTRL': [-20, 20],
-        'QUAD:IN20:361:BCTRL': [-20, 20],
-    }
+    # vranges = {
+    #     'SOLN:IN20:121:BCTRL': [0, 0.55],
+    #     'QUAD:IN20:121:BCTRL': [-0.015, 0.015],
+    #     'QUAD:IN20:122:BCTRL': [-0.015, 0.015],
+    #     'QUAD:IN20:371:BCTRL': [-20, 20],
+    #     'QUAD:IN20:361:BCTRL': [-20, 20],
+    # }
 
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
@@ -37,9 +37,8 @@ class Environment(environment.Environment):
     def get_default_params():
         return None
 
-    @classmethod
-    def _get_vrange(cls, var):
-        return cls.vranges[var]
+    def _get_vrange(self, var):
+        return self.pv_limits[var]
 
     def _get_var(self, var):
         # TODO: update pv limits every time?

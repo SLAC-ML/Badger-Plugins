@@ -48,9 +48,8 @@ class Environment(environment.Environment):
     def get_default_params():
         return None
 
-    @classmethod
-    def _get_vrange(cls, var):
-        return cls.vranges[var]
+    def _get_vrange(self, var):
+        return self.pv_limits[var]
 
     def _get_var(self, var):
         raw_value = self.interface.get_value(var)

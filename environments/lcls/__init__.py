@@ -69,14 +69,8 @@ class Environment(environment.Environment):
             'losses_fname': None,
         }
 
-    def _iget_vrange(self, var):
+    def _get_vrange(self, var):
         return self.pv_limits[var]
-
-    def iget_vranges(self, vars=None):
-        if vars is None:
-            return [self._iget_vrange(var) for var in self.list_vars()]
-        else:
-            return [self.iget_vrange(var) for var in vars]
 
     def _get_var(self, var):
         # TODO: update pv limits every time?
