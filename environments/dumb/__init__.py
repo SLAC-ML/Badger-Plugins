@@ -31,17 +31,16 @@ class Environment(environment.Environment):
 
     def _get_var(self, var):
         try:
-            return self.env_silly.get_var(var)
+            return self.env_silly._get_var(var)
         except Exception:
             pass
 
         try:
-            return self.env_naive.get_var(var)
+            return self.env_naive._get_var(var)
         except Exception:
             pass
 
-        logging.warn(f'Invalid variable {var}')
-        return None
+        raise Exception(f'Invalid variable {var}')
 
     def _set_var(self, var, x):
         if var.startswith('q'):
