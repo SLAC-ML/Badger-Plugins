@@ -11,6 +11,10 @@ class Environment(environment.Environment):
         'q2': 'c2',
         'q3': 'c3',
         'q4': 'c4',
+        'q5': 'c5',
+        'q6': 'c6',
+        'q7': 'c7',
+        'q8': 'c8',
     }
 
     def __init__(self, interface: Interface, params):
