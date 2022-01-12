@@ -5,8 +5,16 @@ import logging
 
 
 def optimize(evaluate, params):
-    D, x0, isteps, xtol, max_iter = \
-        itemgetter('dimension', 'x0', 'isteps', 'xtol', 'max_iter')(params)
+    start_from_current, x0, isteps, xtol, max_iter = \
+        itemgetter('start_from_current', 'x0', 'isteps', 'xtol', 'max_iter')(params)
+
+    _, _, _, _x0 = evaluate(None)
+    D = _x0.shape[1]
+
+    if start_from_current:
+        if x0:
+            logging.warn("Start from the current state, x0 will be ignored")
+        x0 = _x0.flatten()
 
     assert len(x0) == D, 'Dimension does not match!'
 

@@ -4,7 +4,7 @@ version: "0.1"
 dependencies:
   - scipy>0.18
 params:
-  dimension: 2
+  start_from_current: True
   x0: [0, 0]
   isteps:
   xtol: 1.0e-05
