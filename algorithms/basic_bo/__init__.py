@@ -10,7 +10,7 @@ def optimize(evaluate, params):
     def _evaluate(**kwargs):
         var_list = [kwargs[f'v{i}'] for i in range(dimension)]
         X = np.array(var_list).reshape(1, -1)
-        Y, _, _ = evaluate(X)
+        Y, _, _, _ = evaluate(X)
 
         # BO assume a maximize problem
         return -Y[0, 0]

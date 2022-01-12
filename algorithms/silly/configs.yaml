@@ -5,5 +5,5 @@ dependencies:
   - numpy
   - badger-opt
 params:
-  dimension: 1
+  start_from_current: True
   max_iter: 42

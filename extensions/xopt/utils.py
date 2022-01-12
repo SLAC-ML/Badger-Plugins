@@ -12,7 +12,7 @@ def convert_evaluate(evaluate, configs):
     def _evaluate(inputs, extra_option='abc', **params):
         x = np.array([inputs[var_name] for var_name in var_names])
         X = norm(x, vranges[:, 0], vranges[:, 1]).reshape(1, -1)
-        Y, _, _ = evaluate(X)
+        Y, _, _, _ = evaluate(X)
 
         outputs = {}
         for i, obj_name in enumerate(obj_names):
