@@ -14,7 +14,7 @@ class Environment(environment.Environment):
         super().__init__(interface, params)
 
         self.pv_limits = {}
-        self.update_pvs_limits()
+        # self.update_pvs_limits()  # don't do it here, it's too heavy
 
     @staticmethod
     def list_vars():
@@ -70,7 +70,13 @@ class Environment(environment.Environment):
         }
 
     def _get_vrange(self, var):
-        return self.pv_limits[var]
+        try:
+            vrange = self.pv_limits[var]
+        except KeyError:
+            self.update_pv_limits(var)
+            vrange = self.pv_limits[var]
+
+        return vrange
 
     def _get_var(self, var):
         # TODO: update pv limits every time?
