@@ -80,7 +80,13 @@ class Environment(environment.Environment):
 
     def _get_var(self, var):
         # TODO: update pv limits every time?
-        return self.interface.get_value(var)
+        if var.endswith(':BCTRL'):
+            prefix = var[:var.rfind(':')]
+            readback = prefix + ':BACT'
+        else:
+            readback = var
+
+        return self.interface.get_value(readback)
 
     def _set_var(self, var, x):
         self.interface.set_value(var, x)
@@ -128,14 +134,8 @@ class Environment(environment.Environment):
             return [obj_tar, obj_mean, obj_stdev]
 
     def update_pv_limits(self, eid):
-        if eid.endswith(':BACT') or eid.endswith(':BCTRL'):
-            prefix = eid[:eid.rfind(':') + 1]
-        else:
-            prefix = eid + ':'
-        # pv_set = prefix + 'BCTRL'
-        # pv_read = prefix + 'BACT'
-        pv_low = prefix + 'BCTRL.DRVL'
-        pv_high = prefix + 'BCTRL.DRVH'
+        pv_low = eid + '.DRVL'
+        pv_high = eid + '.DRVH'
         low = self.interface.get_value(pv_low)
         high = self.interface.get_value(pv_high)
         self.pv_limits[eid] = (low, high)
