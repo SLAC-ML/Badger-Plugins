@@ -55,6 +55,9 @@ class Interface(interface.Interface):
 
         # Wait for no longer 5s
         pv.put(value, wait=True, timeout=3)
+        # The following might not make sense
+        # since usually we should set one channel but monitor
+        # a corresponding but different channel
         count_down = 2  # second
         while count_down > 0:
             _value = pv.get()
