@@ -59,7 +59,16 @@ class Environment(environment.Environment):
     # TODO: add losses
     @staticmethod
     def list_obses():
-        return ['energy', 'charge', 'current', 'beamrate', 'sase']
+        return [
+            'energy',
+            'charge',
+            'current',
+            'beamrate',
+            'beamsize_x',
+            'beamsize_y',
+            'beamsize_r',
+            'sase',
+        ]
 
     @staticmethod
     def get_default_params():
@@ -109,6 +118,14 @@ class Environment(environment.Environment):
             return self.interface.get_value('BLEN:LI24:886:BIMAX')
         elif obs == 'beamrate':
             return self.interface.get_value('EVNT:SYS0:1:LCLSBEAMRATE')
+        elif obs == 'beamsize_x':
+            return self.interface.get_value('OTRS:IN20:571:XRMS')
+        elif obs == 'beamsize_y':
+            return self.interface.get_value('OTRS:IN20:571:YRMS')
+        elif obs == 'beamsize_r':
+            bs_x = self.interface.get_value('OTRS:IN20:571:XRMS')
+            bs_y = self.interface.get_value('OTRS:IN20:571:YRMS')
+            return np.linalg.norm([bs_x, bs_y])
         elif obs == 'sase':
             # At lcls the repetition is 120 Hz and the readout buf size is 2800.
             # The last 120 entries correspond to pulse energies over past 1 second.
