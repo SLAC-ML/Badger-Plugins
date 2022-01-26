@@ -1,3 +1,4 @@
+import time
 from badger import environment
 from badger.interface import Interface
 
@@ -17,7 +18,7 @@ class Environment(environment.Environment):
         super().__init__(interface, params)
 
         self.pv_limits = {}
-        self.update_pvs_limits()
+        # self.update_pvs_limits()
 
     @staticmethod
     def list_vars():
@@ -38,14 +39,35 @@ class Environment(environment.Environment):
         return None
 
     def _get_vrange(self, var):
-        return self.pv_limits[var]
+        try:
+            vrange = self.pv_limits[var]
+        except KeyError:
+            self.update_pv_limits(var)
+            vrange = self.pv_limits[var]
+
+        return vrange
 
     def _get_var(self, var):
         # TODO: update pv limits every time?
-        return self.interface.get_value(var)
+        if var.endswith(':BCTRL'):
+            prefix = var[:var.rfind(':')]
+            readback = prefix + ':BACT'
+        else:
+            readback = var
+
+        return self.interface.get_value(readback)
 
     def _set_var(self, var, x):
         self.interface.set_value(var, x)
+        if not var.endswith(':BCTRL'):
+            return
+
+        prefix = var[:var.rfind(':')]
+        flag = prefix + ':STATCTRLSUB.T'
+        while True:
+            if not self.interface.get_value(flag):
+                break
+            time.sleep(0.1)
 
     def _get_obs(self, obs):
         return self.interface.get_value(obs)
