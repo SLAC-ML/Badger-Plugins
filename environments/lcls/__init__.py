@@ -76,6 +76,7 @@ class Environment(environment.Environment):
             'readonly': False,
             'points': 120,
             'losses_fname': None,
+            'stats': 'percent_80',
         }
 
     def _get_vrange(self, var):
@@ -157,7 +158,13 @@ class Environment(environment.Environment):
                 obj_mean = data_raw
                 obj_stdev = -1
 
-            return [obj_tar, obj_mean, obj_stdev]
+            stats_dict = {
+                'percent_80': obj_tar,
+                'mean': obj_mean,
+                'stdev': obj_stdev,
+            }
+
+            return stats_dict[self.params['stats']]
 
     def update_pv_limits(self, eid):
         pv_low = eid + '.DRVL'
