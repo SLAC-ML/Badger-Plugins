@@ -34,8 +34,14 @@ class Interface(interface.Interface):
         count_down = 2  # second
         while count_down > 0:
             value = pv.get()
-            if (value is not None) and (not np.isnan(value)):
-                return value
+            try:
+                _ = len(value)
+                value = value[~np.isnan(value)]
+                if len(value):
+                    return value
+            except:
+                if (value is not None) and (not np.isnan(value)):
+                    return value
 
             time.sleep(0.1)
             count_down -= 0.1
