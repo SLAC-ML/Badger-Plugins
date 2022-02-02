@@ -1,0 +1,14 @@
+---
+name: simplex_norm
+version: "0.1"
+dependencies:
+  - scipy>0.18
+  - pandas
+params:
+  start_from_current: True
+  x0: [0, 0]
+  isteps:
+  norm_coef: 0.05
+  scaling_coef: 1
+  xtol: 1.0e-05
+  max_iter: 100
