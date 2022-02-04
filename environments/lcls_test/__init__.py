@@ -69,6 +69,14 @@ class Environment(environment.Environment):
                 break
             time.sleep(0.1)
 
+    def _check_var(self, var):
+        if not var.endswith(':BCTRL'):
+            return 0
+
+        prefix = var[:var.rfind(':')]
+        flag = prefix + ':STATCTRLSUB.T'
+        return self.interface.get_value(flag)
+
     def _get_obs(self, obs):
         return self.interface.get_value(obs)
 
