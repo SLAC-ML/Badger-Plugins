@@ -1,4 +1,3 @@
-import time
 from badger import environment
 from badger.interface import Interface
 
@@ -59,15 +58,6 @@ class Environment(environment.Environment):
 
     def _set_var(self, var, x):
         self.interface.set_value(var, x)
-        if not var.endswith(':BCTRL'):
-            return
-
-        prefix = var[:var.rfind(':')]
-        flag = prefix + ':STATCTRLSUB.T'
-        while True:
-            if not self.interface.get_value(flag):
-                break
-            time.sleep(0.1)
 
     def _check_var(self, var):
         if not var.endswith(':BCTRL'):
