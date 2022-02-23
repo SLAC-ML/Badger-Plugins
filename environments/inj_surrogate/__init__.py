@@ -17,7 +17,7 @@ class Environment(environment.Environment):
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
 
-        self.load_model()
+        self.model = None
         self.variables = {
             'SOL1:solenoid_field_scale': 0.5,
             'SQ01:b1_gradient': 0,
@@ -77,6 +77,10 @@ class Environment(environment.Environment):
     def _get_obs(self, obs):
         if not self.modified:
             return self.observations[obs]
+
+        # Lazy loading
+        if self.model is None:
+            self.load_model()
 
         self.modified = False
 
