@@ -1,0 +1,9 @@
+---
+name: physical_bo
+version: "0.1"
+dependencies:
+  - numpy
+  - scipy
+params:
+  scan_params_name: scan_params_SPEAR3
+  n_iter: 40
