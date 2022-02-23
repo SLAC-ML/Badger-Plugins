@@ -2,6 +2,6 @@
 name: inj_surrogate
 version: "0.1"
 dependencies:
-  - tensorflow
-  - badger-opt
   - scikit-learn==0.23.2
+  - tensorflow==2.4.0
+  - badger-opt

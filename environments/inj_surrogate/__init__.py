@@ -19,9 +19,9 @@ class Environment(environment.Environment):
 
         self.load_model()
         self.variables = {
-            'SOL1:solenoid_field_scale': None,
-            'SQ01:b1_gradient': None,
-            'CQ01:b1_gradient': None,
+            'SOL1:solenoid_field_scale': 0.5,
+            'SQ01:b1_gradient': 0,
+            'CQ01:b1_gradient': 0,
         }
         self.observations = {
             'norm_emit_x': None,
@@ -87,7 +87,7 @@ class Environment(environment.Environment):
         x_in = np.empty((1, len(model.model_in_list)))
 
         # Fill in reference point around which to optimize
-        x_in[:, :] = np.asarray(self.ref_point[0])
+        x_in[:, :] = np.asarray(self.ref_point)
 
         # Set solenoid, SQ, CQ to values from optimization step
         for var in self.list_vars():
@@ -96,11 +96,10 @@ class Environment(environment.Environment):
         # Output predictions
         y_out = model.pred_machine_units(x_in)
         self.observations['norm_emit_x'] = \
-            nemit_x = y_out[:, model.loc_out['norm_emit_x']]
+            nemit_x = y_out[:, model.loc_out['norm_emit_x']] * 1e6  # in um
         self.observations['norm_emit_y'] = \
-            nemit_y = y_out[:, model.loc_out['norm_emit_y']]
-        self.observations['norm_emit'] = np.sqrt(
-            nemit_x * nemit_y) / 1e-6  # in um units
+            nemit_y = y_out[:, model.loc_out['norm_emit_y']] * 1e6  # in um
+        self.observations['norm_emit'] = np.sqrt(nemit_x * nemit_y)  # in um
 
         return self.observations[obs]
 
@@ -118,4 +117,6 @@ class Environment(environment.Environment):
         model.take_log_out = False
 
         with open(self.params['ref_point'], 'r') as f:
-            self.ref_point = json.load(f)
+            ref_point = json.load(f)
+            ref_point = model.sim_to_machine(np.asarray(ref_point))
+            self.ref_point = [ref_point[0]]  # nested list
