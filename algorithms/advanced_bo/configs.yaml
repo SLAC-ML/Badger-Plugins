@@ -1,5 +1,5 @@
 ---
-name: physical_bo
+name: advanced_bo
 version: "0.1"
 dependencies:
   - numpy

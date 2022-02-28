@@ -1,5 +1,5 @@
 ---
-name: simplex_hess
+name: simplex_advanced
 version: "0.1"
 dependencies:
   - scipy>0.18
