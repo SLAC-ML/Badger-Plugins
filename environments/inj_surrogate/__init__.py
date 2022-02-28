@@ -28,6 +28,17 @@ class Environment(environment.Environment):
             'norm_emit_y': None,
             'norm_emit': None,
         }
+
+        env_root = os.path.dirname(os.path.realpath(__file__))
+        self._paths = {
+            'model_path': os.path.join(env_root, 'models'),
+            'model_info': os.path.join(env_root, 'configs', 'model_info.json'),
+            'pv_info': os.path.join(env_root, 'configs', 'pv_info.json'),
+            'ref_point': os.path.join(env_root, 'configs', 'ref_point.json'),
+            'scaler_x': os.path.join(env_root, 'data', 'transformer_x.sav'),
+            'scaler_y': os.path.join(env_root, 'data', 'transformer_y.sav'),
+        }
+
         # if the variables have been changed since the last model prediction
         self.modified = True
 
@@ -49,16 +60,8 @@ class Environment(environment.Environment):
 
     @staticmethod
     def get_default_params():
-        env_root = os.path.dirname(os.path.realpath(__file__))
-
         return {
-            'model_path': os.path.join(env_root, 'models'),
             'model_name': 'model_OTR2_NA_rms_emit_elu_2021-07-27T19_54_57-07_00',
-            'model_info': os.path.join(env_root, 'configs', 'model_info.json'),
-            'pv_info': os.path.join(env_root, 'configs', 'pv_info.json'),
-            'ref_point': os.path.join(env_root, 'configs', 'ref_point.json'),
-            'scaler_x': os.path.join(env_root, 'data', 'transformer_x.sav'),
-            'scaler_y': os.path.join(env_root, 'data', 'transformer_y.sav'),
         }
 
     def _get_vrange(self, var):
@@ -111,16 +114,16 @@ class Environment(environment.Environment):
         # Lazy importing
         from .injector_surrogate_quads import Surrogate_NN
 
-        self.model = model = Surrogate_NN(model_info_file=self.params['model_info'],
-                                          pv_info_file=self.params['pv_info'])
+        self.model = model = Surrogate_NN(model_info_file=self._paths['model_info'],
+                                          pv_info_file=self._paths['pv_info'])
 
-        model.load_saved_model(model_path=self.params['model_path'],
+        model.load_saved_model(model_path=self._paths['model_path'],
                                model_name=self.params['model_name'])
-        model.load_scaling(scalerfilex=self.params['scaler_x'],
-                           scalerfiley=self.params['scaler_y'])
+        model.load_scaling(scalerfilex=self._paths['scaler_x'],
+                           scalerfiley=self._paths['scaler_y'])
         model.take_log_out = False
 
-        with open(self.params['ref_point'], 'r') as f:
+        with open(self._paths['ref_point'], 'r') as f:
             ref_point = json.load(f)
             ref_point = model.sim_to_machine(np.asarray(ref_point))
             self.ref_point = [ref_point[0]]  # nested list
