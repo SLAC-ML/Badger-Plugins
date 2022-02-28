@@ -9,9 +9,22 @@ class Environment(environment.Environment):
 
     name = 'inj_surrogate'
     vranges = {
-        'SOL1:solenoid_field_scale': [0.44, 0.55],
-        'SQ01:b1_gradient': [-0.02, 0.02],
-        'CQ01:b1_gradient': [-0.02, 0.02],
+        'distgen:r_dist:sigma_xy:value': [0.6306, 1.5000],
+        'distgen:t_dist:length:value': [1.8182, 7.2719],
+        'distgen:total_charge:value': [250.0000, 250.0000],
+        'SOL1:solenoid_field_scale': [0.3774, 0.4984],
+        'CQ01:b1_gradient': [-0.0210, 0.0210],
+        'SQ01:b1_gradient': [-0.0210, 0.0210],
+        'L0A_scale:voltage': [58.0000, 58.0000],
+        'L0A_phase:dtheta0_deg': [-24.9987, 9.9918],
+        'L0B_scale:voltage': [70.0000, 70.0000],
+        'L0B_phase:dtheta0_deg': [-24.9997, 9.9989],
+        'QA01:b1_gradient': [-4.3181, -1.0800],
+        'QA02:b1_gradient': [1.0914, 4.3097],
+        'QE01:b1_gradient': [-7.5598, -1.0808],
+        'QE02:b1_gradient': [-1.0782, 7.5599],
+        'QE03:b1_gradient': [-1.0792, 7.5583],
+        'QE04:b1_gradient': [-7.5579, -1.0800],
     }
 
     def __init__(self, interface: Interface, params):
@@ -19,11 +32,27 @@ class Environment(environment.Environment):
 
         self.model = None
         self.variables = {
-            'SOL1:solenoid_field_scale': 0.5,
-            'SQ01:b1_gradient': 0,
-            'CQ01:b1_gradient': 0,
+            'distgen:r_dist:sigma_xy:value': 1.2716,
+            'distgen:t_dist:length:value': 1.8551,
+            'distgen:total_charge:value': 250.0000,
+            'SOL1:solenoid_field_scale': 0.4780,
+            'CQ01:b1_gradient': -0.0015,
+            'SQ01:b1_gradient': -0.0007,
+            'L0A_scale:voltage': 58.0000,
+            'L0A_phase:dtheta0_deg': -9.5360,
+            'L0B_scale:voltage': 70.0000,
+            'L0B_phase:dtheta0_deg': 9.8557,
+            'QA01:b1_gradient': -2.0006,
+            'QA02:b1_gradient': 2.0006,
+            'QE01:b1_gradient': -0.2022,
+            'QE02:b1_gradient': -0.1794,
+            'QE03:b1_gradient': 2.8522,
+            'QE04:b1_gradient': -3.2184,
         }
         self.observations = {
+            'sigma_x': None,
+            'sigma_y': None,
+            'sigma_z': None,
             'norm_emit_x': None,
             'norm_emit_y': None,
             'norm_emit': None,
@@ -45,14 +74,30 @@ class Environment(environment.Environment):
     @staticmethod
     def list_vars():
         return [
+            'distgen:r_dist:sigma_xy:value',
+            'distgen:t_dist:length:value',
+            'distgen:total_charge:value',
             'SOL1:solenoid_field_scale',
-            'SQ01:b1_gradient',
             'CQ01:b1_gradient',
+            'SQ01:b1_gradient',
+            'L0A_scale:voltage',
+            'L0A_phase:dtheta0_deg',
+            'L0B_scale:voltage',
+            'L0B_phase:dtheta0_deg',
+            'QA01:b1_gradient',
+            'QA02:b1_gradient',
+            'QE01:b1_gradient',
+            'QE02:b1_gradient',
+            'QE03:b1_gradient',
+            'QE04:b1_gradient'
         ]
 
     @staticmethod
     def list_obses():
         return [
+            'sigma_x',
+            'sigma_y',
+            'sigma_z',
             'norm_emit_x',
             'norm_emit_y',
             'norm_emit',
@@ -102,6 +147,12 @@ class Environment(environment.Environment):
 
         # Output predictions
         y_out = model.pred_machine_units(x_in)
+        self.observations['sigma_x'] = \
+            y_out[:, model.loc_out['sigma_x']] * 1e3  # in mm
+        self.observations['sigma_y'] = \
+            y_out[:, model.loc_out['sigma_y']] * 1e3  # in mm
+        self.observations['sigma_z'] = \
+            y_out[:, model.loc_out['sigma_z']] * 1e3  # in mm?
         self.observations['norm_emit_x'] = \
             nemit_x = y_out[:, model.loc_out['norm_emit_x']] * 1e6  # in um
         self.observations['norm_emit_y'] = \
