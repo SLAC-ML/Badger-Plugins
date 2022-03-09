@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import time
 import json
 from badger import environment
 from badger.interface import Interface
@@ -107,6 +108,7 @@ class Environment(environment.Environment):
     def get_default_params():
         return {
             'model_name': 'model_OTR2_NA_rms_emit_elu_2021-07-27T19_54_57-07_00',
+            'waiting_time': 0,
         }
 
     def _get_vrange(self, var):
@@ -123,6 +125,12 @@ class Environment(environment.Environment):
             self.modified = True
 
     def _get_obs(self, obs):
+        try:
+            dt = self.params['waiting_time']
+        except KeyError:
+            dt = 0
+        time.sleep(dt)
+
         if not self.modified:
             return self.observations[obs]
 
