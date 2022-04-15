@@ -77,6 +77,7 @@ class Environment(environment.Environment):
             'points': 120,
             'losses_fname': None,
             'stats': 'percent_80',
+            'beamsize_monitor': '541',
         }
 
     def _get_vrange(self, var):
@@ -110,6 +111,7 @@ class Environment(environment.Environment):
         return self.interface.get_value(flag)
 
     def _get_obs(self, obs):
+        mid = self.params['beamsize_monitor']
         if obs == 'energy':
             return self.interface.get_value('BEND:DMPH:400:BDES')
         elif obs == 'charge':
@@ -119,12 +121,12 @@ class Environment(environment.Environment):
         elif obs == 'beamrate':
             return self.interface.get_value('EVNT:SYS0:1:LCLSBEAMRATE')
         elif obs == 'beamsize_x':
-            return self.interface.get_value('OTRS:IN20:571:XRMS')
+            return self.interface.get_value(f'OTRS:IN20:{mid}:XRMS')
         elif obs == 'beamsize_y':
-            return self.interface.get_value('OTRS:IN20:571:YRMS')
+            return self.interface.get_value(f'OTRS:IN20:{mid}:YRMS')
         elif obs == 'beamsize_r':
-            bs_x = self.interface.get_value('OTRS:IN20:571:XRMS')
-            bs_y = self.interface.get_value('OTRS:IN20:571:YRMS')
+            bs_x = self.interface.get_value(f'OTRS:IN20:{mid}:XRMS')
+            bs_y = self.interface.get_value(f'OTRS:IN20:{mid}:YRMS')
             return np.linalg.norm([bs_x, bs_y])
         elif obs == 'sase':
             # At lcls the repetition is 120 Hz and the readout buf size is 2800.
