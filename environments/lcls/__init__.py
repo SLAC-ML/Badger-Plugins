@@ -40,6 +40,10 @@ class Environment(environment.Environment):
             'QUAD:LTUH:620:BCTRL',
             'QUAD:LTUH:640:BCTRL',
             'QUAD:LTUH:660:BCTRL',
+            'QUAD:LTUS:620:BCTRL',
+            'QUAD:LTUS:640:BCTRL',
+            'QUAD:LTUS:660:BCTRL',
+            'QUAD:LTUS:680:BCTRL',
             'QUAD:LTUH:680:BCTRL',
             'QUAD:LI21:221:BCTRL',
             'QUAD:LI21:251:BCTRL',
@@ -67,7 +71,8 @@ class Environment(environment.Environment):
             'beamsize_x',
             'beamsize_y',
             'beamsize_r',
-            'sase',
+            'hxr_pulse_intensity',
+            'sxr_pulse_intensity',
         ]
 
     @staticmethod
@@ -128,7 +133,7 @@ class Environment(environment.Environment):
             bs_x = self.interface.get_value(f'OTRS:IN20:{mid}:XRMS')
             bs_y = self.interface.get_value(f'OTRS:IN20:{mid}:YRMS')
             return np.linalg.norm([bs_x, bs_y])
-        elif obs == 'sase':
+        elif obs == 'hxr_pulse_intensity':
             # At lcls the repetition is 120 Hz and the readout buf size is 2800.
             # The last 120 entries correspond to pulse energies over past 1 second.
             points = self.params['points']
@@ -157,6 +162,45 @@ class Environment(environment.Environment):
                     'Detector is not a waveform PV, using scalar value')
                 obj_tar = data_raw
                 obj_mean = data_raw
+                obj_stdev = -1
+
+            stats_dict = {
+                'percent_80': obj_tar,
+                'mean': obj_mean,
+                'stdev': obj_stdev,
+            }
+
+            return stats_dict[self.params['stats']]
+        elif obs == 'sxr_pulse_intensity':
+            # At lcls the repetition is 120 Hz and the readout buf size is 2800.
+            # The last 120 entries correspond to pulse energies over past 1 second.
+            points = self.params['points']
+            logging.info(f'Get Value of {points} points')
+
+            try:
+                rate = self._get_obs('beamrate')
+                logging.info(f'Beam rate: {rate}')
+                nap_time = points / (rate * 1.0)
+            except Exception as e:
+                nap_time = 1
+                logging.warn(
+                    'Something went wrong with the beam rate calculation. Let\'s sleep 1 second.')
+                logging.warn(f'Exception was: {e}')
+
+            time.sleep(nap_time)
+
+            data_scalar = self.interface.get_value('EM1K0:GMD:HPS:milliJoulesPerPulse')
+            data_raw = self.interface.get_value('EM1K0:GMD:HPS:milliJoulesPerPulseHSTCUSBR')
+            try:
+                data = data_raw[-points:]
+                obj_tar = percent_80(data)
+                obj_mean = np.mean(data)
+                obj_stdev = np.std(data)
+            except:  # if average fails use the scalar input
+                logging.warn(
+                    'Detector is not a waveform PV, using scalar value')
+                obj_tar = data_scalar
+                obj_mean = data_scalar
                 obj_stdev = -1
 
             stats_dict = {
