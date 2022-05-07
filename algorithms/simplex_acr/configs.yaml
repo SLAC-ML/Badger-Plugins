@@ -9,5 +9,5 @@ params:
   lb: [0, 0]
   ub: [1, 1]
   gain: 1
-  xtol: 1.0e-05
-  max_iter: 100
+  xtol: 1.0e-03
+  max_iter: 50
