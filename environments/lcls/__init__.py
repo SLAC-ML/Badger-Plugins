@@ -83,6 +83,8 @@ class Environment(environment.Environment):
             'losses_fname': None,
             'stats': 'percent_80',
             'beamsize_monitor': '541',
+            'use_check_var': True,  # if check var reaches the target value
+            'trim_delay': 3,  # in second
         }
 
     def _get_vrange(self, var):
@@ -108,12 +110,18 @@ class Environment(environment.Environment):
         self.interface.set_value(var, x)
 
     def _check_var(self, var):
+        if not self.params['use_check_var']:
+            return 0
+
         if not var.endswith(':BCTRL'):
             return 0
 
         prefix = var[:var.rfind(':')]
         flag = prefix + ':STATCTRLSUB.T'
         return self.interface.get_value(flag)
+
+    def vars_changed(self, vars, values):
+        time.sleep(self.params['trim_delay'])  # extra time for stablizing orbits
 
     def _get_obs(self, obs):
         mid = self.params['beamsize_monitor']
