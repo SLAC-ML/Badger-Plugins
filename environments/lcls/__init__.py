@@ -159,7 +159,7 @@ class Environment(environment.Environment):
 
             time.sleep(nap_time)
 
-            data_raw = self.interface.get_value('GDET:FEE1:241:ENRCHSTBR')
+            data_raw = self.interface.get_value('GDET:FEE1:241:ENRCHSTCUHBR')
             try:
                 data = data_raw[-points:]
                 obj_tar = percent_80(data)
