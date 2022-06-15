@@ -73,6 +73,7 @@ class Environment(environment.Environment):
             'beamsize_r',
             'hxr_pulse_intensity',
             'sxr_pulse_intensity',
+            'pulse_id'
         ]
 
     @staticmethod
@@ -218,6 +219,8 @@ class Environment(environment.Environment):
             }
 
             return stats_dict[self.params['stats']]
+        elif obs == 'pulse_id':
+            return self.interface.get_value('PATT:SYS0:1:PULSEID')
 
     def get_system_states(self):
         return {
