@@ -219,6 +219,54 @@ class Environment(environment.Environment):
 
             return stats_dict[self.params['stats']]
 
+    def get_system_states(self):
+        return {
+            'HXR electron energy [GeV]': self.interface.get_value('BEND:DMPH:400:BDES'),
+            'HXR photon energy [eV]': self.interface.get_value('SIOC:SYS0:ML00:AO627'),
+            'SXR electron energy [GeV]': self.interface.get_value('BEND:DMPS:400:BDES'),
+            'SXR photon energy [eV]': self.interface.get_value('SIOC:SYS0:ML00:AO628'),
+            'Rate [Hz]': self.interface.get_value('IOC:IN20:EV01:RG02_DESRATE'),
+            'Charge at gun [pC]': self.interface.get_value('SIOC:SYS0:ML00:CALC038'),
+            'Charge after BC1 [pC]': self.interface.get_value('SIOC:SYS0:ML00:CALC252'),
+            'Charge at HXR dump [pC]': self.interface.get_value('BPMS:DMPH:693:TMITCUH1H') * 1.602e-7,
+            'Charge at SXR dump [pC]': self.interface.get_value('BPMS:DMPS:693:TMITCUS1H') * 1.602e-7,
+            # All matching quads
+            'QUAD:IN20:361:BCTRL': self.interface.get_value('QUAD:IN20:361:BCTRL'),
+            'QUAD:IN20:371:BCTRL': self.interface.get_value('QUAD:IN20:371:BCTRL'),
+            'QUAD:IN20:425:BCTRL': self.interface.get_value('QUAD:IN20:425:BCTRL'),
+            'QUAD:IN20:441:BCTRL': self.interface.get_value('QUAD:IN20:441:BCTRL'),
+            'QUAD:IN20:511:BCTRL': self.interface.get_value('QUAD:IN20:511:BCTRL'),
+            'QUAD:IN20:525:BCTRL': self.interface.get_value('QUAD:IN20:525:BCTRL'),
+            'QUAD:LI21:201:BCTRL': self.interface.get_value('QUAD:LI21:201:BCTRL'),
+            'QUAD:LI21:211:BCTRL': self.interface.get_value('QUAD:LI21:211:BCTRL'),
+            'QUAD:LI21:271:BCTRL': self.interface.get_value('QUAD:LI21:271:BCTRL'),
+            'QUAD:LI21:278:BCTRL': self.interface.get_value('QUAD:LI21:278:BCTRL'),
+            'QUAD:LI26:201:BCTRL': self.interface.get_value('QUAD:LI26:201:BCTRL'),
+            'QUAD:LI26:301:BCTRL': self.interface.get_value('QUAD:LI26:301:BCTRL'),
+            'QUAD:LI26:401:BCTRL': self.interface.get_value('QUAD:LI26:401:BCTRL'),
+            'QUAD:LI26:501:BCTRL': self.interface.get_value('QUAD:LI26:501:BCTRL'),
+            'QUAD:LI26:601:BCTRL': self.interface.get_value('QUAD:LI26:601:BCTRL'),
+            'QUAD:LI26:701:BCTRL': self.interface.get_value('QUAD:LI26:701:BCTRL'),
+            'QUAD:LI26:801:BCTRL': self.interface.get_value('QUAD:LI26:801:BCTRL'),
+            'QUAD:LI26:901:BCTRL': self.interface.get_value('QUAD:LI26:901:BCTRL'),
+            'QUAD:LTUH:620:BCTRL': self.interface.get_value('QUAD:LTUH:620:BCTRL'),
+            'QUAD:LTUH:640:BCTRL': self.interface.get_value('QUAD:LTUH:640:BCTRL'),
+            'QUAD:LTUH:660:BCTRL': self.interface.get_value('QUAD:LTUH:660:BCTRL'),
+            'QUAD:LTUH:680:BCTRL': self.interface.get_value('QUAD:LTUH:680:BCTRL'),
+            'QUAD:LTUS:620:BCTRL': self.interface.get_value('QUAD:LTUS:620:BCTRL'),
+            'QUAD:LTUS:640:BCTRL': self.interface.get_value('QUAD:LTUS:640:BCTRL'),
+            'QUAD:LTUS:660:BCTRL': self.interface.get_value('QUAD:LTUS:660:BCTRL'),
+            'QUAD:LTUS:680:BCTRL': self.interface.get_value('QUAD:LTUS:680:BCTRL'),
+            'QUAD:LI21:221:BCTRL': self.interface.get_value('QUAD:LI21:221:BCTRL'),
+            'QUAD:LI21:251:BCTRL': self.interface.get_value('QUAD:LI21:251:BCTRL'),
+            'QUAD:LI24:740:BCTRL': self.interface.get_value('QUAD:LI24:740:BCTRL'),
+            'QUAD:LI24:860:BCTRL': self.interface.get_value('QUAD:LI24:860:BCTRL'),
+            'QUAD:LTUH:440:BCTRL': self.interface.get_value('QUAD:LTUH:440:BCTRL'),
+            'QUAD:LTUH:460:BCTRL': self.interface.get_value('QUAD:LTUH:460:BCTRL'),
+            'QUAD:IN20:121:BCTRL': self.interface.get_value('QUAD:IN20:121:BCTRL'),
+            'QUAD:IN20:122:BCTRL': self.interface.get_value('QUAD:IN20:122:BCTRL'),
+        }
+
     def update_pv_limits(self, eid):
         pv_low = eid + '.DRVL'
         pv_high = eid + '.DRVH'
