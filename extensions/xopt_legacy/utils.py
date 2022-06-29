@@ -8,12 +8,8 @@ def convert_evaluate(evaluate, configs):
                         for d in configs['variables']])
     obj_names = [next(iter(d)) for d in configs['objectives']]
     rules = [d[next(iter(d))] for d in configs['objectives']]
-    try:
-        print(configs['constraints'])
-    except:
-        print('no constraints')
 
-    def _evaluate(inputs):
+    def _evaluate(inputs, extra_option='abc', **params):
         x = np.array([inputs[var_name] for var_name in var_names])
         X = norm(x, vranges[:, 0], vranges[:, 1]).reshape(1, -1)
         Y, _, _, _ = evaluate(X)

@@ -9,32 +9,30 @@ class Extension(extension.Extension):
         from packaging import version
         from xopt import __version__
 
-        if version.parse(__version__) < version.parse('0.6'):
-            raise Exception('Xopt version should be >= 0.6!')
+        if version.parse(__version__) >= version.parse('0.6'):
+            raise Exception('Xopt version should be < 0.6!')
 
         super().__init__()
 
     def list_algo(self):
-        from xopt.generators import generators
+        from xopt import configure
 
-        return list(generators.keys())
+        return list(configure.KNOWN_ALGORITHMS.keys())
 
     def get_algo_config(self, name):
-        from xopt import __version__
-        from xopt.generators import generator_default_options
-
-        params = generator_default_options[name].dict()
-        try:
-            _ = params['max_evaluations']
-        except KeyError:
-            params['max_evaluations'] = 42
+        from xopt import __version__, configure
 
         try:
+            configs = configure.configure_algorithm({
+                'name': name,
+                'options': {},
+            })
             return {
                 'name': name,
                 'version': __version__,
                 'dependencies': ['xopt'],
-                'params': params,
+                'function': configs['function'],
+                'params': configs['options'],
             }
         except Exception as e:
             raise e
@@ -45,29 +43,24 @@ class Extension(extension.Extension):
         from operator import itemgetter
         from badger.utils import config_list_to_dict
         from xopt import Xopt
+        from concurrent.futures import ThreadPoolExecutor as PoolExecutor
         from xopt.log import configure_logger
         from .utils import convert_evaluate
 
-        routine_configs, algo_configs = itemgetter(
-            'routine_configs', 'algo_configs')(configs)
-        params_algo = algo_configs['params'].copy()
-        try:
-            max_eval = params_algo['max_evaluations']
-            del params_algo['max_evaluations']  # TODO: consider the case when
-            # this property exists in original generator params
-        except KeyError:
-            max_eval = 42
+        routine_configs, algo_configs, env_configs = itemgetter(
+            'routine_configs', 'algo_configs', 'env_configs')(configs)
 
         config = {
             'xopt': {
-                'max_evaluations': max_eval,
+                'output_path': None,
             },
-            'generator': {
+            'algorithm': {
                 'name': algo_configs['name'],
-                **params_algo,
+                'options': algo_configs['params'],
             },
-            'evaluator': {
-                'function': convert_evaluate(evaluate, routine_configs),
+            'simulation': {
+                'name': env_configs['name'],
+                'evaluate': convert_evaluate(evaluate, routine_configs),
             },
             'vocs': {
                 'variables': config_list_to_dict(routine_configs['variables']),
@@ -80,7 +73,8 @@ class Extension(extension.Extension):
         configure_logger(level='ERROR')
 
         X = Xopt(config)
-        X.run()
+        executor = PoolExecutor()
+        X.run(executor=executor)
 
-        # This will raise an exception with older (< 0.6) versions of xopt
-        return X.data
+        # This will raise an exception with older (< 0.4.3) versions of xopt
+        return X.results
