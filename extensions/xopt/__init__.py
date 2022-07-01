@@ -60,6 +60,7 @@ class Extension(extension.Extension):
 
         config = {
             'xopt': {
+                'strict': True,
                 'max_evaluations': max_eval,
             },
             'generator': {
