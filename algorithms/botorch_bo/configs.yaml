@@ -1,0 +1,14 @@
+---
+name: botorch_bo
+version: "0.1"
+dependencies:
+  - numpy
+  - botorch
+params:
+  start_from_current: True
+  num_init: 3
+  num_iter: 40
+  beta: 1.0
+  obj_bound:
+    - 0
+    - 1
