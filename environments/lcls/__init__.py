@@ -223,16 +223,18 @@ class Environment(environment.Environment):
             return self.interface.get_value('PATT:SYS0:1:PULSEID')
 
     def get_system_states(self):
+        ignore_small_value = lambda x: x if x > 10 else 0
+
         return {
             'HXR electron energy [GeV]': self.interface.get_value('BEND:DMPH:400:BDES'),
-            'HXR photon energy [eV]': self.interface.get_value('SIOC:SYS0:ML00:AO627'),
+            'HXR photon energy [eV]': round(self.interface.get_value('SIOC:SYS0:ML00:AO627')),
             'SXR electron energy [GeV]': self.interface.get_value('BEND:DMPS:400:BDES'),
-            'SXR photon energy [eV]': self.interface.get_value('SIOC:SYS0:ML00:AO628'),
-            'Rate [Hz]': self.interface.get_value('IOC:IN20:EV01:RG02_DESRATE'),
-            'Charge at gun [pC]': self.interface.get_value('SIOC:SYS0:ML00:CALC038'),
-            'Charge after BC1 [pC]': self.interface.get_value('SIOC:SYS0:ML00:CALC252'),
-            'Charge at HXR dump [pC]': self.interface.get_value('BPMS:DMPH:693:TMITCUH1H') * 1.602e-7,
-            'Charge at SXR dump [pC]': self.interface.get_value('BPMS:DMPS:693:TMITCUS1H') * 1.602e-7,
+            'SXR photon energy [eV]': round(self.interface.get_value('SIOC:SYS0:ML00:AO628')),
+            'Rate [Hz]': self.interface.get_value('IOC:IN20:EV01:RG02_DESRATE', as_string=True),
+            'Charge at gun [pC]': ignore_small_value(self.interface.get_value('SIOC:SYS0:ML00:CALC038')),
+            'Charge after BC1 [pC]': ignore_small_value(self.interface.get_value('SIOC:SYS0:ML00:CALC252')),
+            'Charge at HXR dump [pC]': ignore_small_value(self.interface.get_value('BPMS:DMPH:693:TMITCUH1H') * 1.602e-7),
+            'Charge at SXR dump [pC]': ignore_small_value(self.interface.get_value('BPMS:DMPS:693:TMITCUS1H') * 1.602e-7),
             # All matching quads
             'QUAD:IN20:361:BCTRL': self.interface.get_value('QUAD:IN20:361:BCTRL'),
             'QUAD:IN20:371:BCTRL': self.interface.get_value('QUAD:IN20:371:BCTRL'),

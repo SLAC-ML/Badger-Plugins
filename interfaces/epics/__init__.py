@@ -20,7 +20,7 @@ class Interface(interface.Interface):
     def get_default_params():
         return None
 
-    def get_value(self, channel: str):
+    def get_value(self, channel: str, as_string=False):
         try:
             pv = self.pvs[channel]
         except KeyError:
@@ -33,7 +33,7 @@ class Interface(interface.Interface):
 
         count_down = 2  # second
         while count_down > 0:
-            value = pv.get()
+            value = pv.get(as_string=as_string)
             try:
                 _ = len(value)
                 value = value[~np.isnan(value)]
