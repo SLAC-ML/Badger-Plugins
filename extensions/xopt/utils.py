@@ -2,6 +2,7 @@ import numpy as np
 from badger.utils import norm
 
 
+
 def convert_evaluate(evaluate, configs):
     var_names = [next(iter(d)) for d in configs['variables']]
     vranges = np.array([d[next(iter(d))]
