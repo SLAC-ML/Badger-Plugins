@@ -1,3 +1,4 @@
+import numpy as np
 from badger import environment
 from badger.interface import Interface
 
@@ -20,11 +21,14 @@ class Environment(environment.Environment):
 
     @staticmethod
     def list_obses():
-        return ['norm', 'mean']
+        return ['norm', 'mean', 'norm_raw']
 
-    # @staticmethod
-    # def get_default_params():
-    #     return None
+    @staticmethod
+    def get_default_params():
+        return {
+            'noise_level': 0.01,
+            'num_raw': 120,
+        }
 
     def _get_var(self, var):
         return self.variables[var]
@@ -41,6 +45,12 @@ class Environment(environment.Environment):
             return (x ** 2 + y ** 2 + z ** 2) ** 0.5
         elif obs == 'mean':
             return (x + y + z) / 3
+        elif obs == 'norm_raw':
+            sigma_n = self.params['noise_level']
+            n = self.params['num_raw']
+            signal = self._get_obs('norm') + sigma_n * np.random.randn(n)
+
+            return signal.tolist()
 
     def get_system_states(self):
         return {
