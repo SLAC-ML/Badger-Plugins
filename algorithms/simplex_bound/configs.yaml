@@ -1,0 +1,17 @@
+---
+name: simplex_bound
+version: "0.1"
+dependencies:
+  - scipy>1.7
+params:
+  start_from_current: True
+  x0: [0, 0, 0]
+  bounds:
+    - [0, 1]
+    - [0, 1]
+    - [0, 1]
+  ftol: 1.0e-09
+  xtol: 1.0e-04
+  adaptive: True
+  max_iter: 50
+  seed: 12
