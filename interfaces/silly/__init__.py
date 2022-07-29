@@ -30,6 +30,7 @@ class Interface(interface.Interface):
             'channel_count': 8
         }
 
+    @interface.log
     def get_value(self, channel: str):
         try:
             value = self.states[channel]
@@ -39,6 +40,7 @@ class Interface(interface.Interface):
 
         return value
 
+    @interface.log
     def set_value(self, channel: str, value):
         if channel not in self.channels:
             logging.warn(f'Channel {channel} doesn\'t exist!')
