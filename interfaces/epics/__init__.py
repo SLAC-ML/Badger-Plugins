@@ -1,6 +1,5 @@
 import time
 import numpy as np
-from operator import itemgetter
 import epics
 from badger import interface
 
@@ -20,6 +19,7 @@ class Interface(interface.Interface):
     def get_default_params():
         return None
 
+    @interface.log
     def get_value(self, channel: str, as_string=False):
         try:
             pv = self.pvs[channel]
@@ -48,6 +48,7 @@ class Interface(interface.Interface):
 
         raise Exception(f'PV {channel} readout ({value}) is invalid!')
 
+    @interface.log
     def set_value(self, channel: str, value):
         try:
             pv = self.pvs[channel]
