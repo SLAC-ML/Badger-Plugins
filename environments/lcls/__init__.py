@@ -71,6 +71,7 @@ class Environment(environment.Environment):
             'beamsize_x',
             'beamsize_y',
             'beamsize_r',
+            'beamsize_g',
             'hxr_pulse_intensity',
             'sxr_pulse_intensity',
             'pulse_id'
