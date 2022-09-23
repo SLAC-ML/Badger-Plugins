@@ -142,6 +142,10 @@ class Environment(environment.Environment):
             bs_x = self.interface.get_value(f'OTRS:IN20:{mid}:XRMS')
             bs_y = self.interface.get_value(f'OTRS:IN20:{mid}:YRMS')
             return np.linalg.norm([bs_x, bs_y])
+        elif obs == 'beamsize_g':
+            bs_x = self.interface.get_value(f'OTRS:IN20:{mid}:XRMS')
+            bs_y = self.interface.get_value(f'OTRS:IN20:{mid}:YRMS')
+            return np.sqrt(bs_x * bs_y)
         elif obs == 'hxr_pulse_intensity':
             # At lcls the repetition is 120 Hz and the readout buf size is 2800.
             # The last 120 entries correspond to pulse energies over past 1 second.
