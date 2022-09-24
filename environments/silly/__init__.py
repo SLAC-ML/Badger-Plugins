@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from badger import environment
 from badger.interface import Interface
@@ -30,13 +31,22 @@ class Environment(environment.Environment):
 
     @staticmethod
     def get_default_params():
-        return None
+        return {
+            'chaos': False,
+        }
 
     def _get_var(self, var):
         return self.interface.get_value(self.var_channel_map[var])
 
     def _set_var(self, var, x):
         self.interface.set_value(self.var_channel_map[var], x)
+
+    def _check_var(self, var):
+        if not self.params['chaos']:
+            return 0
+
+        time.sleep(0.1 * np.random.rand())
+        return round(np.random.rand())
 
     def _get_obs(self, obs):
         if obs == 'l1':
