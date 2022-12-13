@@ -59,7 +59,6 @@ class Environment(environment.Environment):
         }
 
     def _get_var(self, var):
-        # TODO: update pv limits every time?
         return self.interface.get_value(var)
 
     def _set_var(self, var, x):

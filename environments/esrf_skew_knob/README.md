@@ -1,4 +1,4 @@
-# XFEL Environment for Badger
+# ESRF Environment for Badger
 
 ## Prerequisites
 

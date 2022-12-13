@@ -1,5 +1,5 @@
 ---
-name: xfel
+name: esrf
 version: "0.1"
 dependencies:
   - numpy
