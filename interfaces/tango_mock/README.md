@@ -1,4 +1,4 @@
-# TANGO_MOCK Interface for Badger
+# TANGO Interface for Badger
 
 ## Prerequisites
 
