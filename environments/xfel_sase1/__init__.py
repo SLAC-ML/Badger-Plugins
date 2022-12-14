@@ -6,7 +6,7 @@ from badger.interface import Interface
 
 class Environment(environment.Environment):
 
-    name = 'xfel'
+    name = 'xfel_sase1'
 
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
