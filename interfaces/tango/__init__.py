@@ -13,7 +13,7 @@ class Interface(interface.Interface):
     def get_default_params():
         return None
 
-    def get_value(self, channel: str):
+    def get_value(self, channel: str, attr: str):
         attr = tango.AttributeProxy(channel)
         return attr.read().value
 

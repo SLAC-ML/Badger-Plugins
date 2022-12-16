@@ -37,7 +37,8 @@ class Environment(environment.Environment):
     name = 'esrf_skew_knob'
 
     def __init__(self, interface: Interface, params):
-        self.limits_knobs = { name : [-1000, 1000] for name in Environment.knobs.get_names()}
+        self.limits_knobs = { name : [-1, 1] for name in Environment.knobs.get_names()}
+        self.current_vars = []
         super().__init__(interface, params)
 
     def _get_vrange(self, var):
@@ -59,15 +60,22 @@ class Environment(environment.Environment):
         }
 
     def _get_var(self, var):
-        return self.interface.get_value(var)
+        raise Exception("values have to be get at once!")
 
-    def _set_var(self, var, x):
+    def _get_vars(self, vars):
+        print(f"requested values: {vars}")
+        if len(self.current_vars) == 0:
+            self.current_vars = [0.0 for _ in range(len(vars))]     
+        return self.current_vars
+
+    def _set_var(self, var, x): 
         raise Exception("values have to be set at once!")
 
     def _set_vars(self, vars, _x):
+        self.current_vars = _x
         print(f"value names {vars}")
-        skews = np.sum(_x * np.transpose(Environment.knobs.gen_matrix(vars)))
-        self.interface.set_value('srmag/sqp/all', 'CorrectionStrengths', skews) 
+        skews = np.sum(_x * np.transpose(Environment.knobs.gen_matrix(vars)), axis=1)
+        self.interface.set_value(channel='srmag/sqp/all', attr='CorrectionStrengths', value=skews) 
 
     def _get_obs(self, obs):
         try:
