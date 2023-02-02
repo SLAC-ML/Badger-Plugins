@@ -64,7 +64,7 @@ def get_BO_point(x, f, bounds, precision=None, beta=1.0):
     '''
 
     # define GP model
-    gp = botorch.models.SingleTaskGP(x, f)  # , precision)
+    gp = botorch.models.SingleTaskGP(x.double(), f.double())  # , precision)
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(gp.likelihood, gp)
 
     for name, item in gp.named_parameters():
