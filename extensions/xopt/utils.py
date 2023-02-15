@@ -1,5 +1,6 @@
 import numpy as np
-from badger.utils import norm
+import pandas as pd
+from badger.utils import norm, denorm
 
 
 def convert_evaluate(evaluate, configs):
@@ -47,3 +48,16 @@ def convert_evaluate(evaluate, configs):
         return outputs
 
     return _evaluate
+
+
+def get_current_data(evaluate, configs):
+    var_names = [next(iter(d)) for d in configs['variables']]
+    vranges = np.array([d[next(iter(d))]
+                        for d in configs['variables']])
+
+    _, _, _, _x0 = evaluate(None)
+    x0 = denorm(_x0, vranges[:, 0], vranges[:, 1])
+
+    init_data = pd.DataFrame(x0, columns=var_names)
+
+    return init_data
