@@ -28,6 +28,10 @@ class Extension(extension.Extension):
             _ = params['max_evaluations']
         except KeyError:
             params['max_evaluations'] = 42
+        try:
+            _ = params['start_from_current']
+        except KeyError:
+            params['start_from_current'] = True
 
         try:
             return {
@@ -57,6 +61,11 @@ class Extension(extension.Extension):
             # this property exists in original generator params
         except KeyError:
             max_eval = 42
+        try:
+            start_from_current = params_algo['start_from_current']
+            del params_algo['start_from_current']
+        except KeyError:
+            start_from_current = True
 
         config = {
             'xopt': {
@@ -81,6 +90,14 @@ class Extension(extension.Extension):
         configure_logger(level='ERROR')
 
         X = Xopt(config)
+
+        # Evaluate the current solution if specified
+        if start_from_current:
+            from .utils import get_current_data
+
+            init_data = get_current_data(evaluate, routine_configs)
+            X.evaluate_data(init_data)
+
         X.run()
 
         # This will raise an exception with older (< 0.6) versions of xopt
