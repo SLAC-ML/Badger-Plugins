@@ -44,6 +44,11 @@ class Extension(extension.Extension):
             raise e
             # raise Exception(f'Algorithm {name} is not supported')
 
+    def get_algo_docs(self, name):
+        from xopt.generators import generators
+
+        return generators[name].__doc__
+
     def optimize(self, evaluate, configs):
         # Lazy import to make the CLI UX faster
         from operator import itemgetter
