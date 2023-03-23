@@ -32,6 +32,10 @@ class Extension(extension.Extension):
             _ = params['start_from_current']
         except KeyError:
             params['start_from_current'] = True
+        try:  # remove custom GP kernel to avoid yaml parsing error for now
+            del params['model']['function']
+        except KeyError:
+            pass
 
         try:
             return {
