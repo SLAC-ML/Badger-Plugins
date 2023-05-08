@@ -1,0 +1,6 @@
+---
+name: lcls_taper
+version: "0.1"
+dependencies:
+  - zfel==0.9.4
+  - badger-opt
