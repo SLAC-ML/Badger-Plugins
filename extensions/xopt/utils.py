@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from badger.utils import norm, denorm
+from badger.archive import load_run
 
 
 def convert_evaluate(evaluate, configs):
@@ -59,5 +60,15 @@ def get_current_data(evaluate, configs):
     x0 = denorm(_x0, vranges[:, 0], vranges[:, 1])
 
     init_data = pd.DataFrame(x0, columns=var_names)
+
+    return init_data
+
+
+def get_run_data(filename):
+    # TODO: consider data chain
+    run = load_run(filename)
+
+    init_data = pd.DataFrame(run['data'])
+    init_data = init_data.drop(columns=['timestamp', 'timestamp_raw'])
 
     return init_data

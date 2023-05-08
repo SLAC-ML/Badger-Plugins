@@ -24,10 +24,7 @@ class Extension(extension.Extension):
         from xopt.generators import generator_default_options
 
         params = generator_default_options[name].dict()
-        try:
-            _ = params['max_evaluations']
-        except KeyError:
-            params['max_evaluations'] = 42
+
         try:
             _ = params['start_from_current']
         except KeyError:
@@ -65,12 +62,6 @@ class Extension(extension.Extension):
             'routine_configs', 'algo_configs')(configs)
         params_algo = algo_configs['params'].copy()
         try:
-            max_eval = params_algo['max_evaluations']
-            del params_algo['max_evaluations']  # TODO: consider the case when
-            # this property exists in original generator params
-        except KeyError:
-            max_eval = 42
-        try:
             start_from_current = params_algo['start_from_current']
             del params_algo['start_from_current']
         except KeyError:
@@ -79,7 +70,6 @@ class Extension(extension.Extension):
         config = {
             'xopt': {
                 'strict': True,
-                'max_evaluations': max_eval,
             },
             'generator': {
                 'name': algo_configs['name'],
@@ -101,7 +91,13 @@ class Extension(extension.Extension):
         X = Xopt(config)
 
         # Evaluate the current solution if specified
-        if start_from_current:
+        # or inject data from another run
+        if isinstance(start_from_current, str):
+            from .utils import get_run_data
+
+            init_data = get_run_data(start_from_current)
+            X.submit_data(init_data)
+        elif start_from_current:
             from .utils import get_current_data
 
             init_data = get_current_data(evaluate, routine_configs)
