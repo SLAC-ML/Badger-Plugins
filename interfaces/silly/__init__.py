@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List, Dict
 from badger import interface
 from operator import itemgetter
 import logging
@@ -7,33 +8,34 @@ import logging
 class Interface(interface.Interface):
 
     name = 'silly'
+    params: Dict = {
+        'channel_prefix': 'c',
+        'channel_count': 8
+    }
 
-    def __init__(self, params=None):
-        super().__init__(params)
+    # Private variables
+    _channels: List[str]
+    _states: Dict[str, float]
+
+    def __init__(self, **data):
+        super().__init__(**data)
 
         prefix, count = itemgetter(
             'channel_prefix', 'channel_count')(self.params)
 
-        self.channels = []
-        self.states = {}
+        self._channels = []
+        self._states = {}
         for i in range(count):
-            self.channels.append(f'{prefix}{i + 1}')
-            self.states[f'{prefix}{i + 1}'] = 0
+            self._channels.append(f'{prefix}{i + 1}')
+            self._states[f'{prefix}{i + 1}'] = 0
 
-        self.channels.append('norm')
-        self.states['norm'] = 0
-
-    @staticmethod
-    def get_default_params():
-        return {
-            'channel_prefix': 'c',
-            'channel_count': 8
-        }
+        self._channels.append('norm')
+        self._states['norm'] = 0
 
     @interface.log
     def get_value(self, channel: str):
         try:
-            value = self.states[channel]
+            value = self._states[channel]
         except KeyError:
             logging.warn(f'Channel {channel} doesn\'t exist!')
             value = None
@@ -42,14 +44,14 @@ class Interface(interface.Interface):
 
     @interface.log
     def set_value(self, channel: str, value):
-        if channel not in self.channels:
+        if channel not in self._channels:
             logging.warn(f'Channel {channel} doesn\'t exist!')
             return
 
         try:
-            self.states[channel] = value
-            values = np.array([self.states[channel]
-                              for channel in self.channels[:-1]])
-            self.states['norm'] = np.sqrt(np.sum(values ** 2))
+            self._states[channel] = value
+            values = np.array([self._states[channel]
+                              for channel in self._channels[:-1]])
+            self._states['norm'] = np.sqrt(np.sum(values ** 2))
         except KeyError:
             logging.warn(f'Channel {channel} doesn\'t exist!')
