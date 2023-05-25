@@ -33,25 +33,31 @@ class Interface(interface.Interface):
         self._states['norm'] = 0
 
     @interface.log
-    def get_value(self, channel: str):
-        try:
-            value = self._states[channel]
-        except KeyError:
-            logging.warn(f'Channel {channel} doesn\'t exist!')
-            value = None
+    def get_values(self, channel_names):
+        channel_outputs = {}
 
-        return value
+        for channel in channel_names:
+            try:
+                value = self._states[channel]
+            except KeyError:
+                logging.warn(f'Channel {channel} doesn\'t exist!')
+                value = None
+
+            channel_outputs[channel] = value
+
+        return channel_outputs
 
     @interface.log
-    def set_value(self, channel: str, value):
-        if channel not in self._channels:
-            logging.warn(f'Channel {channel} doesn\'t exist!')
-            return
+    def set_values(self, channel_inputs):
+        for channel, value in channel_inputs.items():
+            if channel not in self._channels:
+                logging.warn(f'Channel {channel} doesn\'t exist!')
+                continue
 
-        try:
-            self._states[channel] = value
-            values = np.array([self._states[channel]
-                              for channel in self._channels[:-1]])
-            self._states['norm'] = np.sqrt(np.sum(values ** 2))
-        except KeyError:
-            logging.warn(f'Channel {channel} doesn\'t exist!')
+            try:
+                self._states[channel] = value
+                values = np.array([self._states[channel]
+                                   for channel in self._channels[:-1]])
+                self._states['norm'] = np.sqrt(np.sum(values ** 2))
+            except KeyError:
+                logging.warn(f'Channel {channel} doesn\'t exist!')

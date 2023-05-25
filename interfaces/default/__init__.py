@@ -14,13 +14,19 @@ class Interface(interface.Interface):
 
         self._states = {}
 
-    def get_value(self, channel: str):
-        try:
-            value = self._states[channel]
-        except KeyError:
-            self._states[channel] = value = 0
+    def get_values(self, channel_names):
+        channel_outputs = {}
 
-        return value
+        for channel in channel_names:
+            try:
+                value = self._states[channel]
+            except KeyError:
+                self._states[channel] = value = 0
 
-    def set_value(self, channel: str, value):
-        self._states[channel] = value
+            channel_outputs[channel] = value
+
+        return channel_outputs
+
+    def set_values(self, channel_inputs):
+        for channel, value in channel_inputs.items():
+            self._states[channel] = value
