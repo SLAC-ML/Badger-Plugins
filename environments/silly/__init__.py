@@ -1,13 +1,19 @@
 import time
 import numpy as np
+from typing import Dict, List
 from badger import environment
-from badger.interface import Interface
 
 
 class Environment(environment.Environment):
 
     name = 'silly'
-    var_channel_map = {
+    variables: List = ['q1', 'q2', 'q3', 'q4']
+    observables: List = ['l1', 'l2']
+    params: Dict = {
+        'chaos': False,
+    }
+
+    _var_channel_map: Dict = {
         'q1': 'c1',
         'q2': 'c2',
         'q3': 'c3',
@@ -18,40 +24,56 @@ class Environment(environment.Environment):
         'q8': 'c8',
     }
 
-    def __init__(self, interface: Interface, params):
-        super().__init__(interface, params)
+    def get_variables(self, variable_names: List[str]) -> Dict:
+        if self.interface is None:
+            raise Exception('Must provide an interface!')
 
-    @staticmethod
-    def list_vars():
-        return ['q1', 'q2', 'q3', 'q4']
+        channel_names = [self._var_channel_map[v] for v in variable_names]
+        channel_outputs = self.interface.get_values(channel_names)
 
-    @staticmethod
-    def list_obses():
-        return ['l1', 'l2']
+        variable_outputs = {v: channel_outputs[self._var_channel_map[v]]
+                            for v in variable_names}
 
-    @staticmethod
-    def get_default_params():
-        return {
-            'chaos': False,
-        }
+        return variable_outputs
 
-    def _get_var(self, var):
-        return self.interface.get_value(self.var_channel_map[var])
+    def set_variables(self, variable_inputs: Dict[str, float]):
+        if self.interface is None:
+            raise Exception('Must provide an interface!')
 
-    def _set_var(self, var, x):
-        self.interface.set_value(self.var_channel_map[var], x)
+        channel_inputs = {self._var_channel_map[k]: v
+                          for k, v in variable_inputs.items()}
 
-    def _check_var(self, var):
+        self.interface.set_values(channel_inputs)
+
+        # Emulate the real environment w/ communication lags
         if not self.params['chaos']:
-            return 0
+            return
 
-        time.sleep(0.1 * np.random.rand())
-        return round(np.random.rand())
+        timeout = 3  # second
+        time_start = time.time()
+        while round(np.random.rand()):
+            time.sleep(0.1 * np.random.rand())
 
-    def _get_obs(self, obs):
-        if obs == 'l1':
-            values = self.interface.get_values(
-                ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
-            return np.sum(np.abs(values))
-        elif obs == 'l2':
-            return self.interface.get_value('norm')
+            time_elapsed = time.time() - time_start
+            if time_elapsed > timeout:
+                break
+
+    def get_observables(self, observable_names: List[str]) -> Dict:
+        if self.interface is None:
+            raise Exception('Must provide an interface!')
+
+        observable_outputs = {}
+        for obs in observable_names:
+            if obs == 'l1':
+                outputs = self.interface.get_values(
+                    ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'])
+                observable_outputs[obs] = np.sum(np.abs(list(outputs.values())))
+            elif obs == 'l2':
+                observable_outputs[obs] = self.interface.get_values(['norm'])['norm']
+
+        return observable_outputs
+
+    def get_bounds(self, variable_names: List[str]) -> Dict[str, List[float]]:
+        bounds = {v: [0.0, 1.0] for v in variable_names}
+
+        return bounds
