@@ -7,6 +7,7 @@ class Interface(interface.Interface):
     name = 'default'
     # If params not specified, it would be an empty dict
 
+    # Private variables
     _states: Dict
 
     def __init__(self, **data):
