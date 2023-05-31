@@ -7,12 +7,18 @@ from badger import environment
 class Environment(environment.Environment):
 
     name = 'silly'
-    variables: List = ['q1', 'q2', 'q3', 'q4']
-    observables: List = ['l1', 'l2']
-    params: Dict = {
-        'chaos': False,
+    variables = {
+        'q1': [0, 1],
+        'q2': [0, 1],
+        'q3': [0, 1],
+        'q4': [0, 1],
     }
+    observables = ['l1', 'l2']
 
+    # Env params
+    chaos: bool = False
+
+    # Private properties
     _var_channel_map: Dict = {
         'q1': 'c1',
         'q2': 'c2',
@@ -46,7 +52,7 @@ class Environment(environment.Environment):
         self.interface.set_values(channel_inputs)
 
         # Emulate the real environment w/ communication lags
-        if not self.params['chaos']:
+        if not self.chaos:
             return
 
         timeout = 3  # second
@@ -72,8 +78,3 @@ class Environment(environment.Environment):
                 observable_outputs[obs] = self.interface.get_values(['norm'])['norm']
 
         return observable_outputs
-
-    def get_bounds(self, variable_names: List[str]) -> Dict[str, List[float]]:
-        bounds = {v: [0.0, 1.0] for v in variable_names}
-
-        return bounds
