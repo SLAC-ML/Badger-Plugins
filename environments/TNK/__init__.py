@@ -1,6 +1,6 @@
 import numpy as np
+from typing import Dict
 from badger import environment
-from badger.interface import Interface
 
 
 # Pure number version
@@ -16,50 +16,40 @@ def TNK(individual):
 class Environment(environment.Environment):
 
     name = 'TNK'
+    variables = {
+        'x1': [0, 3.14159],
+        'x2': [0, 3.14159],
+    }
+    observables = ['y1', 'y2', 'c1', 'c2', 'some_array']
 
-    def __init__(self, interface: Interface, params):
-        super().__init__(interface, params)
+    _variables = {
+        'x1': 0.0,
+        'x2': 0.0,
+    }
+    _observations = {
+        'y1': None,
+        'y2': None,
+        'c1': None,
+        'c2': None,
+        'some_array': np.array([1, 2, 3]),
+    }
 
-        self.variables = {
-            'x1': 0,
-            'x2': 0,
-        }
-        self.observations = {
-            'y1': None,
-            'y2': None,
-            'c1': None,
-            'c2': None,
-            'some_array': np.array([1, 2, 3]),
-        }
+    def get_variables(self, variable_names):
+        variable_outputs = {v: self._variables[v] for v in variable_names}
 
-    @staticmethod
-    def list_vars():
-        return ['x1', 'x2']
+        return variable_outputs
 
-    @staticmethod
-    def list_obses():
-        return ['y1', 'y2', 'c1', 'c2', 'some_array']
-
-    @staticmethod
-    def get_default_params():
-        return None
-
-    def _get_vrange(self, var):
-        return [0, 3.14159]
-
-    def _get_var(self, var):
-        return self.variables[var]
-
-    def _set_var(self, var, x):
-        self.variables[var] = x
+    def set_variables(self, variable_inputs: Dict[str, float]):
+        for var, x in variable_inputs.items():
+            self._variables[var] = x
 
         # Filling up the observations
-        ind = [self.variables['x1'], self.variables['x2']]
+        ind = [self._variables['x1'], self._variables['x2']]
         objectives, constraints = TNK(ind)
-        self.observations['y1'] = objectives[0]
-        self.observations['y2'] = objectives[1]
-        self.observations['c1'] = constraints[0]
-        self.observations['c2'] = constraints[1]
+        self._observations['y1'] = objectives[0]
+        self._observations['y2'] = objectives[1]
+        self._observations['c1'] = constraints[0]
+        self._observations['c2'] = constraints[1]
 
-    def _get_obs(self, obs):
-        return self.observations[obs]
+    def get_observables(self, observable_names):
+        return {k: self._observations[k] for k in observable_names}
