@@ -1,17 +1,16 @@
 import numpy as np
 from typing import List, Dict
 from badger import interface
-from operator import itemgetter
 import logging
 
 
 class Interface(interface.Interface):
 
     name = 'silly'
-    params: Dict = {
-        'channel_prefix': 'c',
-        'channel_count': 8
-    }
+
+    # Intf params
+    channel_prefix: str = 'c'
+    channel_count: int = 8
 
     # Private variables
     _channels: List[str]
@@ -20,8 +19,7 @@ class Interface(interface.Interface):
     def __init__(self, **data):
         super().__init__(**data)
 
-        prefix, count = itemgetter(
-            'channel_prefix', 'channel_count')(self.params)
+        prefix, count = self.channel_prefix, self.channel_count
 
         self._channels = []
         self._states = {}
