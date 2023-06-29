@@ -1,3 +1,4 @@
+import json
 from badger import extension
 
 
@@ -21,9 +22,9 @@ class Extension(extension.Extension):
 
     def get_algo_config(self, name):
         from xopt import __version__
-        from xopt.generators import generator_default_options
+        from xopt.generators import get_generator
 
-        params = generator_default_options[name].dict()
+        params = json.loads(get_generator(name)(vocs={}).json())
 
         try:
             _ = params['start_from_current']
@@ -32,6 +33,8 @@ class Extension(extension.Extension):
         try:  # remove custom GP kernel to avoid yaml parsing error for now
             del params['model']['function']
         except KeyError:
+            pass
+        except TypeError:
             pass
 
         try:
