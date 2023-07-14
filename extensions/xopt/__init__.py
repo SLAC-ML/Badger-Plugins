@@ -1,4 +1,3 @@
-import json
 from badger import extension
 
 
@@ -22,9 +21,11 @@ class Extension(extension.Extension):
 
     def get_algo_config(self, name):
         from xopt import __version__
+        from .utils import get_algo_params
         from xopt.generators import get_generator
 
-        params = json.loads(get_generator(name)(vocs={}).json())
+        # params = json.loads(get_generator(name)(vocs={}).json())
+        params = get_algo_params(get_generator(name))
 
         try:
             _ = params['start_from_current']
