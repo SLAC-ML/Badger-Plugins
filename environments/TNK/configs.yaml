@@ -4,3 +4,4 @@ description: "Constrainted test function TNK. See Table V in https://www.iitk.ac
 version: "0.1"
 dependencies:
   - numpy
+  - badger-opt
