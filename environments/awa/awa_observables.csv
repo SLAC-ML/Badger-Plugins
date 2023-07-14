@@ -1,0 +1,12 @@
+NAME,SCALE,UNIT,DESCRIPTION
+TEST:XRMS,1,m,test_rmsx
+TEST:YRMS,1,m,test_rmsy
+AWAVXI11ICT:Ch1,1,nC,ICT1 charge
+AWAICTMon:Ch2,1,nC,ICT2 charge
+AWAICTMon:Ch3,1,nC,ICT3 charge
+AWAICTMon:Ch4,1,nC,ICT4 charge
+13ARV1:Cx,1,px,x centroid from EPICS server
+13ARV1:Cy,1,px,y centroid from EPICS server
+13ARV1:Sx,1,px,x rms
+13ARV1:Sy,1,px,y rms
+13ARV1:penalty,1,px,penalty function

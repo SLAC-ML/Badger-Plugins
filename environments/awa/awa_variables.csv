@@ -1,0 +1,9 @@
+NAME,MIN,MAX,UNIT,DESCRIPTION
+AWA:Drive:DS1:Ctrl,500,550,A,Focusing solenoid
+AWA:Drive:DS3:Ctrl,180,260,A,Matching solenoid
+AWA:Bira3Ctrl:Ch03,-5,5,A,DQ4
+AWA:Bira3Ctrl:Ch04,-5,5,A,DQ5
+AWA:Bira3Ctrl:Ch05,-5,5,A,DQ6
+AWA:Bira3Ctrl:Ch06,-5,5,A,DQ7
+AWALLRF:K1:SetPhase,339,359,degrees,Gun phase
+AWA:DAC0:Ch08,4.5,5.9,counts,Gun RF amplitude + K2
