@@ -1,0 +1,7 @@
+---
+name: sphere
+description: "High-dimensional sphere test environment"
+version: "0.1"
+dependencies:
+  - torch
+  - badger-opt
