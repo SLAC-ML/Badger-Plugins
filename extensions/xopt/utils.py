@@ -65,6 +65,19 @@ def get_current_data(evaluate, configs):
     return init_data
 
 
+def get_init_data(configs):
+    try:
+        init_points = configs['init_points']
+        if init_points is None:
+            df = None
+        else:
+            df = pd.DataFrame.from_dict(init_points)
+
+        return df
+    except KeyError:
+        return None
+
+
 def get_run_data(filename):
     # TODO: consider data chain
     run = load_run(filename)

@@ -60,7 +60,7 @@ class Extension(extension.Extension):
         from badger.utils import config_list_to_dict
         from xopt import Xopt
         from xopt.log import configure_logger
-        from .utils import convert_evaluate
+        from .utils import convert_evaluate, get_init_data
 
         routine_configs, algo_configs = itemgetter(
             'routine_configs', 'algo_configs')(configs)
@@ -93,6 +93,15 @@ class Extension(extension.Extension):
         configure_logger(level='ERROR')
 
         X = Xopt(config)
+
+        # Check initial points setting
+        # If set, run the optimization with it and ignore start_from_current
+        init_data = get_init_data(routine_configs)
+        if init_data is not None:
+            X.evaluate_data(init_data)
+            X.run()
+            # This will raise an exception with older (< 0.6) versions of xopt
+            return X.data
 
         # Evaluate the current solution if specified
         # or inject data from another run
