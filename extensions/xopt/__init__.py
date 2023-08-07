@@ -109,7 +109,7 @@ class Extension(extension.Extension):
             from .utils import get_run_data
 
             init_data = get_run_data(start_from_current)
-            X.submit_data(init_data)
+            X.add_data(init_data)
         elif start_from_current:
             from .utils import get_current_data
 
