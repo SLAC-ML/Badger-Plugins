@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pandas as pd
 from badger.utils import norm, denorm
@@ -64,6 +65,19 @@ def get_current_data(evaluate, configs):
     return init_data
 
 
+def get_init_data(configs):
+    try:
+        init_points = configs['init_points']
+        if init_points is None:
+            df = None
+        else:
+            df = pd.DataFrame.from_dict(init_points)
+
+        return df
+    except KeyError:
+        return None
+
+
 def get_run_data(filename):
     # TODO: consider data chain
     run = load_run(filename)
@@ -72,3 +86,24 @@ def get_run_data(filename):
     init_data = init_data.drop(columns=['timestamp', 'timestamp_raw'])
 
     return init_data
+
+
+def get_algo_params(cls):
+    params = {}
+    for k in cls.__fields__:
+        if k in ['vocs', 'data']:
+            continue
+
+        v = cls.__fields__[k]
+        try:
+            _ = v.default
+        except AttributeError:
+            params[k] = get_algo_params(v)
+            continue
+
+        try:
+            params[k] = json.loads(v.default.json())
+        except AttributeError:
+            params[k] = v.default
+
+    return params

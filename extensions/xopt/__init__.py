@@ -21,9 +21,16 @@ class Extension(extension.Extension):
 
     def get_algo_config(self, name):
         from xopt import __version__
-        from xopt.generators import generator_default_options
 
-        params = generator_default_options[name].dict()
+        try:
+            from xopt.generators import generator_default_options
+
+            params = generator_default_options[name].dict()
+        except ImportError:  # Xopt v2.0+
+            from .utils import get_algo_params
+            from xopt.generators import get_generator
+
+            params = get_algo_params(get_generator(name))
 
         try:
             _ = params['start_from_current']
@@ -32,6 +39,8 @@ class Extension(extension.Extension):
         try:  # remove custom GP kernel to avoid yaml parsing error for now
             del params['model']['function']
         except KeyError:
+            pass
+        except TypeError:
             pass
 
         try:
@@ -56,7 +65,7 @@ class Extension(extension.Extension):
         from badger.utils import config_list_to_dict
         from xopt import Xopt
         from xopt.log import configure_logger
-        from .utils import convert_evaluate
+        from .utils import convert_evaluate, get_init_data
 
         routine_configs, algo_configs = itemgetter(
             'routine_configs', 'algo_configs')(configs)
@@ -90,13 +99,22 @@ class Extension(extension.Extension):
 
         X = Xopt(config)
 
+        # Check initial points setting
+        # If set, run the optimization with it and ignore start_from_current
+        init_data = get_init_data(routine_configs)
+        if init_data is not None:
+            X.evaluate_data(init_data)
+            X.run()
+            # This will raise an exception with older (< 0.6) versions of xopt
+            return X.data
+
         # Evaluate the current solution if specified
         # or inject data from another run
         if isinstance(start_from_current, str):
             from .utils import get_run_data
 
             init_data = get_run_data(start_from_current)
-            X.submit_data(init_data)
+            X.add_data(init_data)
         elif start_from_current:
             from .utils import get_current_data
 
