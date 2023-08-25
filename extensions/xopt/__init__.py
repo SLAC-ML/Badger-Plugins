@@ -2,15 +2,15 @@ from badger import extension
 
 
 class Extension(extension.Extension):
-
-    name = 'xopt'
+    name = "xopt"
 
     def __init__(self):
         from packaging import version
+
         from xopt import __version__
 
-        if version.parse(__version__) < version.parse('0.6'):
-            raise Exception('Xopt version should be >= 0.6!')
+        if version.parse(__version__) < version.parse("0.6"):
+            raise Exception("Xopt version should be >= 0.6!")
 
         super().__init__()
 
@@ -21,18 +21,23 @@ class Extension(extension.Extension):
 
     def get_algo_config(self, name):
         from xopt import __version__
-        from .utils import get_algo_params
-        from xopt.generators import get_generator
-
-        # params = json.loads(get_generator(name)(vocs={}).json())
-        params = get_algo_params(get_generator(name))
 
         try:
-            _ = params['start_from_current']
+            from xopt.generators import generator_default_options
+
+            params = generator_default_options[name].dict()
+        except ImportError:  # Xopt v2.0+
+            from xopt.generators import get_generator
+            from .utils import get_algo_params
+
+            params = get_algo_params(get_generator(name))
+
+        try:
+            _ = params["start_from_current"]
         except KeyError:
-            params['start_from_current'] = True
+            params["start_from_current"] = True
         try:  # remove custom GP kernel to avoid yaml parsing error for now
-            del params['model']['function']
+            del params["model"]["function"]
         except KeyError:
             pass
         except TypeError:
@@ -40,10 +45,10 @@ class Extension(extension.Extension):
 
         try:
             return {
-                'name': name,
-                'version': __version__,
-                'dependencies': ['xopt'],
-                'params': params,
+                "name": name,
+                "version": __version__,
+                "dependencies": ["xopt"],
+                "params": params,
             }
         except Exception as e:
             raise e
@@ -57,40 +62,49 @@ class Extension(extension.Extension):
     def optimize(self, evaluate, configs):
         # Lazy import to make the CLI UX faster
         from operator import itemgetter
+
         from badger.utils import config_list_to_dict
+
         from xopt import Xopt
         from xopt.log import configure_logger
         from .utils import convert_evaluate, get_init_data
 
-        routine_configs, algo_configs = itemgetter(
-            'routine_configs', 'algo_configs')(configs)
-        params_algo = algo_configs['params'].copy()
+        routine_configs, algo_configs = itemgetter("routine_configs", "algo_configs")(
+            configs
+        )
+        params_algo = algo_configs["params"].copy()
         try:
-            start_from_current = params_algo['start_from_current']
-            del params_algo['start_from_current']
+            start_from_current = params_algo["start_from_current"]
+            del params_algo["start_from_current"]
         except KeyError:
             start_from_current = True
 
         config = {
-            'xopt': {
-                'strict': True,
+            "xopt": {
+                "strict": True,
             },
-            'generator': {
-                'name': algo_configs['name'],
+            "generator": {
+                "name": algo_configs["name"],
                 **params_algo,
             },
-            'evaluator': {
-                'function': convert_evaluate(evaluate, routine_configs),
+            "evaluator": {
+                "function": convert_evaluate(evaluate, routine_configs),
             },
-            'vocs': {
-                'variables': config_list_to_dict(routine_configs['variables']),
-                'objectives': config_list_to_dict(routine_configs['objectives']),
-                'constraints': config_list_to_dict(routine_configs['constraints']),
-            }
+            "vocs": {
+                "variables": config_list_to_dict(
+                    routine_configs["variables"]
+                ),
+                "objectives": config_list_to_dict(
+                    routine_configs["objectives"]
+                ),
+                "constraints": config_list_to_dict(
+                    routine_configs["constraints"]
+                ),
+            },
         }
 
         # Set up logging
-        configure_logger(level='ERROR')
+        configure_logger(level="ERROR")
 
         X = Xopt(config)
 
