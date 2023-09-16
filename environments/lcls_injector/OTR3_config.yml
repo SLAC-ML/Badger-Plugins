@@ -1,0 +1,14 @@
+array_data_suffix: IMAGE
+array_n_cols_suffix: ROI_XNP
+array_n_rows_suffix: ROI_YNP
+background_file: null
+bounding_box_half_width: 3.0
+min_log_intensity: 4.0
+n_fitting_restarts: 1
+resolution_suffix: RESOLUTION
+save_image_location: null
+screen_name: OTRS:IN20:621
+testing: false
+visualize: false
+wait_time: 0.1
+beam_shutter_pv: IOC:BSY0:MP01:MSHUTCTL
