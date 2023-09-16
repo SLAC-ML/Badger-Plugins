@@ -69,9 +69,9 @@ class Extension(extension.Extension):
         from xopt.log import configure_logger
         from .utils import convert_evaluate, get_init_data
 
-        routine_configs, algo_configs = itemgetter("routine_configs", "algo_configs")(
-            configs
-        )
+        routine_configs, algo_configs = itemgetter(
+            "routine_configs", "algo_configs"
+        )(configs)
         params_algo = algo_configs["params"].copy()
         try:
             start_from_current = params_algo["start_from_current"]
