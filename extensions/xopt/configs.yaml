@@ -1,0 +1,6 @@
+---
+name: xopt
+version: "0.1"
+dependencies:
+  - xopt>=0.6
+  - badger-opt
