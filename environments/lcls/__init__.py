@@ -67,7 +67,7 @@ class Environment(environment.Environment):
     # Env params
     readonly: bool = False
     points: int = 120
-    losses_fname = None
+    losses_fname: str = None
     stats: str = 'percent_80'
     beamsize_monitor: str = '541'
     use_check_var: bool = True  # if check var reaches the target value
