@@ -3,6 +3,7 @@ import numpy as np
 from typing import Dict, List
 from badger import environment
 from badger.stats import percent_80
+from badger.errors import BadgerEnvObsError
 import logging
 
 
@@ -72,6 +73,7 @@ class Environment(environment.Environment):
     beamsize_monitor: str = '541'
     use_check_var: bool = True  # if check var reaches the target value
     trim_delay: float = 3.0  # in second
+    fault_timeout: 5.0  # in second
 
     def get_bounds(self, variable_names):
         assert self.interface, 'Must provide an interface!'
@@ -111,6 +113,9 @@ class Environment(environment.Environment):
         self.interface.set_values(variable_inputs)
 
         if not self.use_check_var:
+            if self.trim_delay:
+                time.sleep(self.trim_delay)  # extra time for stablizing orbits
+
             return
 
         variable_ready_flags = [v[:v.rfind(':')] + ':STATCTRLSUB.T'
@@ -129,11 +134,11 @@ class Environment(environment.Environment):
             if time_elapsed > timeout:
                 break
 
-        if self.trim_delay:
-            time.sleep(self.trim_delay)  # extra time for stablizing orbits
-
     def get_observables(self, observable_names: List[str]) -> Dict:
         assert self.interface, 'Must provide an interface!'
+
+        # Make sure machine is not in a fault state
+        self.check_fault_status()
 
         observable_outputs = {}
         mid = self.beamsize_monitor
@@ -243,6 +248,26 @@ class Environment(environment.Environment):
             observable_outputs[obs] = value
 
         return observable_outputs
+
+    def check_fault_status(self):
+        assert self.interface, 'Must provide an interface!'
+
+        ts_start = time.time()
+        while True:
+            rate_MPS = self.interface.get_value('IOC:BSY0:MP01:PC_RATE',
+                                                as_string=True)
+            permit_BCS = self.interface.get_value('BCS:MCC0:1:BEAMPMSV',
+                                                  as_string=True)
+
+            if (rate_MPS == '120 Hz') and (permit_BCS == 'OK'):
+                break
+            else:
+                ts_curr = time.time()
+                dt = ts_curr - ts_start
+                if dt > self.fault_timeout:
+                    raise BadgerEnvObsError
+
+                time.sleep(0.1)
 
     def get_system_states(self):
         assert self.interface, 'Must provide an interface!'
