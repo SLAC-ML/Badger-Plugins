@@ -61,8 +61,10 @@ class Extension(extension.Extension):
 
     def optimize(self, evaluate, configs):
         # Lazy import to make the CLI UX faster
+        from packaging import version
         from operator import itemgetter
         from badger.utils import config_list_to_dict
+        from xopt import __version__
         from xopt import Xopt
         from xopt.log import configure_logger
         from .utils import convert_evaluate, get_init_data
@@ -77,9 +79,6 @@ class Extension(extension.Extension):
             start_from_current = True
 
         config = {
-            'xopt': {
-                'strict': True,
-            },
             'generator': {
                 'name': algo_configs['name'],
                 **params_algo,
@@ -94,11 +93,21 @@ class Extension(extension.Extension):
             }
         }
 
+        xopt_version = version.parse(__version__)
+        flag_v2 = (xopt_version >= version.parse('2.0')) or xopt_version.is_prerelease
+
+        if flag_v2:
+            configs['strict'] = True
+        else:
+            configs['xopt'] = {'strict': True}
+
         # Set up logging
         configure_logger(level='ERROR')
 
-        X = Xopt(config)
-
+        if flag_v2:
+            X = Xopt(**config)
+        else:
+            X = Xopt(config)
         # Check initial points setting
         # If set, run the optimization with it and ignore start_from_current
         init_data = get_init_data(routine_configs)
