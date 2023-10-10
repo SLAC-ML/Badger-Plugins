@@ -61,6 +61,7 @@ class Extension(extension.Extension):
 
     def optimize(self, evaluate, configs):
         # Lazy import to make the CLI UX faster
+        import copy
         from packaging import version
         from operator import itemgetter
         from badger.utils import config_list_to_dict
@@ -71,7 +72,7 @@ class Extension(extension.Extension):
 
         routine_configs, algo_configs = itemgetter(
             'routine_configs', 'algo_configs')(configs)
-        params_algo = algo_configs['params'].copy()
+        params_algo = copy.deepcopy(algo_configs['params'])
         try:
             start_from_current = params_algo['start_from_current']
             del params_algo['start_from_current']
