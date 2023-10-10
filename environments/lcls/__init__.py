@@ -73,7 +73,7 @@ class Environment(environment.Environment):
     beamsize_monitor: str = '541'
     use_check_var: bool = True  # if check var reaches the target value
     trim_delay: float = 3.0  # in second
-    fault_timeout: 5.0  # in second
+    fault_timeout: float = 5.0  # in second
 
     def get_bounds(self, variable_names):
         assert self.interface, 'Must provide an interface!'
