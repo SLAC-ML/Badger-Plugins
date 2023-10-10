@@ -3,3 +3,4 @@ __pycache__
 *.egg-info
 /__init__.py
 .tmp
+.ipynb_checkpoints
