@@ -19,8 +19,8 @@ def convert_evaluate(evaluate, configs):
     relations = [d[next(iter(d))] for d in configs_cons]
 
     def _evaluate(inputs):
-        x = np.array([inputs[var_name] for var_name in var_names])
-        X = norm(x, vranges[:, 0], vranges[:, 1]).reshape(1, -1)
+        x = np.array([inputs[var_name] for var_name in var_names]).reshape(1, -1)
+        X = norm(x, vranges[:, 0], vranges[:, 1])
         Y, I, E, _ = evaluate(X)
 
         outputs = {}
