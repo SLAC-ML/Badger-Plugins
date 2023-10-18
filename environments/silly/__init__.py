@@ -1,7 +1,9 @@
 import time
 import numpy as np
 from typing import Dict, List
+from pydantic import Field
 from badger import environment
+from badger.errors import BadgerNoInterfaceError
 
 
 class Environment(environment.Environment):
@@ -16,7 +18,7 @@ class Environment(environment.Environment):
     observables = ['l1', 'l2']
 
     # Env params
-    chaos: bool = False
+    chaos: bool = Field(False)
 
     # Private properties
     _var_channel_map: Dict = {
@@ -32,7 +34,7 @@ class Environment(environment.Environment):
 
     def get_variables(self, variable_names: List[str]) -> Dict:
         if self.interface is None:
-            raise Exception('Must provide an interface!')
+            raise BadgerNoInterfaceError
 
         channel_names = [self._var_channel_map[v] for v in variable_names]
         channel_outputs = self.interface.get_values(channel_names)
@@ -44,7 +46,7 @@ class Environment(environment.Environment):
 
     def set_variables(self, variable_inputs: Dict[str, float]):
         if self.interface is None:
-            raise Exception('Must provide an interface!')
+            raise BadgerNoInterfaceError
 
         channel_inputs = {self._var_channel_map[k]: v
                           for k, v in variable_inputs.items()}
@@ -66,7 +68,7 @@ class Environment(environment.Environment):
 
     def get_observables(self, observable_names: List[str]) -> Dict:
         if self.interface is None:
-            raise Exception('Must provide an interface!')
+            raise BadgerNoInterfaceError
 
         observable_outputs = {}
         for obs in observable_names:
