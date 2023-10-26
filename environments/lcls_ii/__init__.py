@@ -169,10 +169,22 @@ class Environment(environment.Environment):
             nap_time = points / rate
             time.sleep(nap_time)
 
-            intensity_raw = self.interface.get_value(PV_gas)
-            loss_raw = self.interface.get_value(PV_loss)
-            stats_intensity = get_buffer_stats(intensity_raw[-points:])
-            stats_loss = get_buffer_stats(loss_raw[-points:])
+            # Filter out the NaNs
+            results_dict = self.interface.get_values([PV_gas, PV_loss])
+            intensity_raw = results_dict[PV_gas][-points:]
+            loss_raw = results_dict[PV_loss][-points:]
+            ind_valid = ~np.logical_or(np.isnan(intensity_raw), np.isnan(loss_raw))
+            intensity_valid = intensity_raw[ind_valid]
+            loss_valid = intensity_raw[ind_valid]
+
+            n_valid = len(intensity_valid)
+            if not n_valid:
+                raise BadgerEnvObsError("All points in buffer are NaNs!")
+
+            logging.info(f'Valid point number in buffer: {n_valid}')
+
+            stats_intensity = get_buffer_stats(intensity_valid)
+            stats_loss = get_buffer_stats(loss_valid)
 
             return stats_intensity[self.stats], stats_loss[self.stats]
         elif self.method == 2:
