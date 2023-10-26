@@ -1,9 +1,9 @@
 import logging
 import time
 import numpy as np
-from edef import EventDefinition
 from badger import environment
 from badger.errors import BadgerNoInterfaceError, BadgerEnvObsError
+from .utils import get_buffer_stats
 
 
 class Environment(environment.Environment):
@@ -29,6 +29,7 @@ class Environment(environment.Environment):
     }
     observables = [
         'sxr_pulse_intensity',
+        'beam_loss',
     ]
 
     # Env params
@@ -36,11 +37,11 @@ class Environment(environment.Environment):
     # For method 0
     xgmd: bool = False
     avg: bool = False
+    loss_pv: str = 'LBLM:COL0:862:A:I0_LOSS'  # loss monitor PV prefix
     # For method 1
     event_code: str = 'SCS'  # could also be '31', '32'
     custom_acq_rate: float = 100  # for custom event code
     points: int = 100
-    loss_pv: str = 'LBLM:COL0:862:A:I0_LOSSSCSHH'  # loss monitor PV
     stats: str = 'percent_80'
     # Var setters
     use_check_var: bool = False  # if check var reaches the target value
@@ -115,7 +116,7 @@ class Environment(environment.Environment):
         if self.trim_delay:
             time.sleep(self.trim_delay)  # extra time for stablizing orbits
 
-    def get_sxr_pulse_intensity(self):
+    def get_intensity_n_loss(self):
         # self.method
         # 0: scalar
         # 1: BSA buffer
@@ -123,20 +124,22 @@ class Environment(environment.Environment):
         if self.method == 0:
             if self.xgmd:
                 if self.avg:
-                    value = self.interface.get_value(
+                    intensity = self.interface.get_value(
                         'EM2K0:XGMD:HPS:AvgPulseIntensity')
                 else:
-                    value = self.interface.get_value(
+                    intensity = self.interface.get_value(
                         'EM2K0:XGMD:HPS:milliJoulesPerPulse')
             else:
                 if self.avg:
-                    value = self.interface.get_value(
+                    intensity = self.interface.get_value(
                         'EM1K0:GMD:HPS:AvgPulseIntensity')
                 else:
-                    value = self.interface.get_value(
+                    intensity = self.interface.get_value(
                         'EM1K0:GMD:HPS:milliJoulesPerPulse')
 
-            return value
+            loss = self.interface.get_value(self.loss_pv)
+
+            return intensity, loss
         elif self.method == 1:
             points = self.points
             logging.info(f'Get value of {points} points')
@@ -150,38 +153,32 @@ class Environment(environment.Environment):
             if self.event_code == 'SCS':
                 if req_rate < 100:
                     PV_gas = 'EM1K0:GMD:HPS:milliJoulesPerPulseHSTSCSTH'
+                    PV_loss = f'{self.loss_pv}HSTSCSTH'
                     rate = 10
                 else:
                     PV_gas = 'EM1K0:GMD:HPS:milliJoulesPerPulseHSTSCSHH'
+                    PV_loss = f'{self.loss_pv}HSTSCSHH'
                     rate = 100
             else:
                 PV_gas = f'EM1K0:GMD:HPS:milliJoulesPerPulseHST{self.event_code}'
+                PV_loss = f'{self.loss_pv}HST{self.event_code}'
                 rate = self.custom_acq_rate
-            logging.info(f'SXR dump acquisition rate: {rate} Hz')
+            logging.info(f'Data acquisition rate: {rate} Hz')
 
             # Wait enough time to accumulate sufficient data points in buffers
             nap_time = points / rate
             time.sleep(nap_time)
 
-            data_raw = self.interface.get_value(PV_gas)
-            data = data_raw[-points:]
-            obj_tar = np.percentile(data, 80)
-            obj_mean = np.mean(data)
-            obj_median = np.median(data)
-            obj_std = np.std(data)
+            intensity_raw = self.interface.get_value(PV_gas)
+            loss_raw = self.interface.get_value(PV_loss)
+            stats_intensity = get_buffer_stats(intensity_raw[-points:])
+            stats_loss = get_buffer_stats(loss_raw[-points:])
 
-            stats_dict = {
-                'percent_80': obj_tar,
-                'mean': obj_mean,
-                'median': obj_median,
-                'std': obj_std,
-            }
-
-            return stats_dict[self.stats]
+            return stats_intensity[self.stats], stats_loss[self.stats]
         elif self.method == 2:
-            raise NotImplementedError()
+            raise NotImplementedError
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
 
     def check_fault_status(self):
         ts_start = time.time()
@@ -211,10 +208,16 @@ class Environment(environment.Environment):
         # Make sure machine is not in a fault state
         self.check_fault_status()
 
+        intensity, loss = self.get_intensity_n_loss()
+
         observable_outputs = {}
         for obs in observable_names:
             if obs == 'sxr_pulse_intensity':
-                value = self.get_sxr_pulse_intensity()
+                value = intensity
+            elif obs == 'beam_loss':
+                value = loss
+            else:
+                raise NotImplementedError
 
             observable_outputs[obs] = value
 
