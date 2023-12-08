@@ -1,56 +1,56 @@
 import numpy as np
 from badger import environment
-from badger.interface import Interface
 
 
 class Environment(environment.Environment):
 
     name = 'myenv'
 
-    def __init__(self, interface: Interface, params):
-        super().__init__(interface, params)
-        self.variables = {
-            'x': 0,
-            'y': 0,
-            'z': 0,
-        }
+    variables = {
+        'x': [0, 1],
+        'y': [0, 1],
+        'z': [0, 1],
+    }
+    observables = ['norm', 'mean', 'norm_raw']
 
-    @staticmethod
-    def list_vars():
-        return ['x', 'y', 'z']
+    # Environment parameters
+    noise_level: float = 0.01
+    num_raw: int = 120
 
-    @staticmethod
-    def list_obses():
-        return ['norm', 'mean', 'norm_raw']
+    # Internal variables start with a single underscore
+    _variables = {
+        'x': 0,
+        'y': 0,
+        'z': 0,
+    }
 
-    @staticmethod
-    def get_default_params():
-        return {
-            'noise_level': 0.01,
-            'num_raw': 120,
-        }
+    def get_variables(self, variable_names: list[str]) -> dict:
+        variable_outputs = {v: self._variables[v] for v in variable_names}
 
-    def _get_var(self, var):
-        return self.variables[var]
+        return variable_outputs
 
-    def _set_var(self, var, x):
-        self.variables[var] = x
+    def set_variables(self, variable_inputs: dict[str, float]):
+        for var, x in variable_inputs.items():
+            self._variables[var] = x
 
-    def _get_obs(self, obs):
-        x = self.variables['x']
-        y = self.variables['y']
-        z = self.variables['z']
+    def get_observables(self, observable_names: list[str]) -> dict:
+        x = self._variables['x']
+        y = self._variables['y']
+        z = self._variables['z']
 
-        if obs == 'norm':
-            return (x ** 2 + y ** 2 + z ** 2) ** 0.5
-        elif obs == 'mean':
-            return (x + y + z) / 3
-        elif obs == 'norm_raw':
-            sigma_n = self.params['noise_level']
-            n = self.params['num_raw']
-            signal = self._get_obs('norm') + sigma_n * np.random.randn(n)
+        observable_outputs = {}
+        for obs in observable_names:
+            if obs == 'norm':
+                observable_outputs[obs] = (x ** 2 + y ** 2 + z ** 2) ** 0.5
+            elif obs == 'mean':
+                observable_outputs[obs] = (x + y + z) / 3
+            elif obs == 'norm_raw':
+                norm = (x ** 2 + y ** 2 + z ** 2) ** 0.5
+                signal = norm + \
+                    self.noise_level * np.random.randn(self.num_raw)
+                observable_outputs[obs] = signal.tolist()
 
-            return signal.tolist()
+        return observable_outputs
 
     def get_system_states(self):
         return {
