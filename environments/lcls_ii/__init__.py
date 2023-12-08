@@ -195,15 +195,16 @@ class Environment(environment.Environment):
     def check_fault_status(self):
         ts_start = time.time()
         while True:
-            req_rate = self.interface.get_value('TPG:SYS0:1:DST04:REQRATE')
-            act_rate = self.interface.get_value('TPG:SYS0:1:DST04:RATE')
-            is_rate_matched = (req_rate == act_rate)
+            # req_rate = self.interface.get_value('TPG:SYS0:1:DST04:REQRATE')
+            # act_rate = self.interface.get_value('TPG:SYS0:1:DST04:RATE')
+            # is_rate_matched = (req_rate == act_rate)
 
             permit_MPS = self.interface.get_value(
                 'SIOC:SYS0:MP00:SC_SXR_BC', as_string=True)
             is_beam_on = (permit_MPS != 'Beam Off')
 
-            if is_rate_matched and is_beam_on:
+            # if is_rate_matched and is_beam_on:
+            if is_beam_on:
                 break
             else:
                 ts_curr = time.time()
