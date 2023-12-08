@@ -1,0 +1,6 @@
+---
+name: doocs_real2sim
+version: "0.1"
+dependencies:
+  - badger-opt
+  - pydoocs
