@@ -1,5 +1,5 @@
 ---
-name: xfel_sase1
+name: xfel_sase2
 version: "0.1"
 dependencies:
   - numpy
