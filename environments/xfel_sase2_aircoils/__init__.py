@@ -5,7 +5,7 @@ from badger.interface import Interface
 from badger.factory import get_intf
 
 def get_aircoil_address(magnet_name: str, number: int) -> str:
-    return f'XFEL.FEL/UNDULATOR.SASE2/{magnet_name}.CELL{number}.SA1/FIELD.OFFSET'
+    return f'XFEL.FEL/UNDULATOR.SASE2/{magnet_name}.CELL{number}.SA2/FIELD.OFFSET'
 
 def get_aircoil_list() -> list:
     vars_list = [] 

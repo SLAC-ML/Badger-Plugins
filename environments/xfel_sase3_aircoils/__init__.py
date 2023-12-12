@@ -5,12 +5,12 @@ from badger.interface import Interface
 from badger.factory import get_intf
 
 def get_aircoil_address(magnet_name: str, number: int) -> str:
-    return f'XFEL.FEL/UNDULATOR.SASE2/{magnet_name}.CELL{number}.SA1/FIELD.OFFSET'
+    return f'XFEL.FEL/UNDULATOR.SASE3/{magnet_name}.CELL{number}.SA3/FIELD.OFFSET'
 
 def get_aircoil_list() -> list:
     vars_list = [] 
-    for i in range(1, 37):
-        if i in [9, 18]: 
+    for i in range(1, 27):
+        if i in [13]: 
             continue        # skip missing cells
         for m in ['CAX', 'CAY', 'CBX', 'CBY']:
             addr = get_aircoil_address(m, i)
@@ -21,7 +21,7 @@ def get_aircoil_list() -> list:
 
 class Environment(environment.Environment):
 
-    name = 'XFEL Sase2 Aircoils'
+    name = 'XFEL Sase3 Aircoils'
 
     def __init__(self, interface: Interface, params):
         super().__init__(interface, params)
@@ -77,7 +77,7 @@ class Environment(environment.Environment):
         if obs == 'sases_average':
             values = []
             for i in range(30):
-                sa1 = self.interface.get_value("XFEL.FEL/XGM/XGM.2595.T6/INTENSITY.RAW.TRAIN")
+                sa1 = self.interface.get_value("XFEL.FEL/XGM/XGM.3130.T10/INTENSITY.RAW.TRAIN")
                 values.append(sa1)
                 time.sleep(0.1)
             return np.mean(values)

@@ -79,7 +79,7 @@ class Environment(environment.Environment):
         elif obs == 'sases':
             try:
                 sa = self.interface.get_value(
-                    "XFEL.FEL/XGM/XGM.2595.T6/INTENSITY.RAW.TRAIN")
+                    "XFEL.FEL/XGM/XGM.2643.T9/INTENSITY.RAW.TRAIN")
             except:
                 sa = None
 
