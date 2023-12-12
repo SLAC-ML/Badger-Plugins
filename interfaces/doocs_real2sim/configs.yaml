@@ -1,8 +1,6 @@
 ---
-name: xfel_sase1
+name: doocs_real2sim
 version: "0.1"
 dependencies:
-  - numpy
   - badger-opt
-interface:
-  - doocs
+  - pydoocs
