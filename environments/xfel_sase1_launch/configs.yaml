@@ -1,0 +1,8 @@
+---
+name: xfel_sase1
+version: "0.1"
+dependencies:
+  - numpy
+  - badger-opt
+interface:
+  - doocs
