@@ -1,0 +1,14 @@
+---
+---
+name: xfel_sase3_launch
+version: "0.1"
+dependencies:
+  - numpy
+  - badger-opt
+interface:
+  - doocs
+  - doocs_mock
+  - doocs_real2sim
+params:
+  - waiting_time: 1
+  - interface: doocs
