@@ -26,10 +26,15 @@ class Environment(environment.Environment):
         'QUAD:LTUS:640:BCTRL': [],
         'QUAD:LTUS:660:BCTRL': [],
         'QUAD:LTUS:680:BCTRL': [],
+        'QUAD:HTR:120:BCTRL': [],
     }
     observables = [
         'sxr_pulse_intensity',
         'beam_loss',
+        'beamsize_x',
+        'beamsize_y',
+        'beamsize_r',
+        'beamsize_g',
     ]
 
     # Env params
@@ -221,7 +226,8 @@ class Environment(environment.Environment):
         # Make sure machine is not in a fault state
         self.check_fault_status()
 
-        intensity, loss = self.get_intensity_n_loss()
+        if ('sxr_pulse_intensity' in observable_names) or ('beam_loss' in observable_names):
+            intensity, loss = self.get_intensity_n_loss()
 
         observable_outputs = {}
         for obs in observable_names:
@@ -229,6 +235,18 @@ class Environment(environment.Environment):
                 value = intensity
             elif obs == 'beam_loss':
                 value = loss
+            elif obs == 'beamsize_x':
+                value = self.interface.get_value('OTRS:HTR:330:XRMS')
+            elif obs == 'beamsize_y':
+                value = self.interface.get_value('OTRS:HTR:330:YRMS')
+            elif obs == 'beamsize_r':
+                bs_x = self.interface.get_value('OTRS:HTR:330:XRMS')
+                bs_y = self.interface.get_value('OTRS:HTR:330:YRMS')
+                value = np.linalg.norm([bs_x, bs_y])
+            elif obs == 'beamsize_g':
+                bs_x = self.interface.get_value('OTRS:HTR:330:XRMS')
+                bs_y = self.interface.get_value('OTRS:HTR:330:YRMS')
+                value = np.sqrt(bs_x * bs_y)
             else:
                 raise NotImplementedError
 
