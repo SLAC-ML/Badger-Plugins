@@ -29,7 +29,10 @@ class Environment(environment.Environment):
         'QUAD:HTR:120:BCTRL': [],
     }
     observables = [
-        'sxr_pulse_intensity',
+        'sxr_pulse_intensity_p80',
+        'sxr_pulse_intensity_mean',
+        'sxr_pulse_intensity_median',
+        'sxr_pulse_intensity_std',
         'beam_loss',
         'beamsize_x',
         'beamsize_y',
@@ -54,6 +57,7 @@ class Environment(environment.Environment):
     trim_delay: float = 7.0  # in second
     # MPS fault check
     check_fault_timeout: float = 5.0  # in second
+    lasering: bool = True  # if it's lasering
 
     def get_bounds(self, variable_names):
         if self.interface is None:
@@ -144,7 +148,7 @@ class Environment(environment.Environment):
 
             loss = self.interface.get_value(self.loss_pv)
 
-            return intensity, loss
+            return intensity, intensity, intensity, 0, loss
         elif self.method == 1:
             points = self.points
             logging.info(f'Get value of {points} points')
@@ -191,13 +195,22 @@ class Environment(environment.Environment):
             stats_intensity = get_buffer_stats(intensity_valid)
             stats_loss = get_buffer_stats(loss_valid)
 
-            return stats_intensity[self.stats], stats_loss[self.stats]
+            return stats_intensity['percent_80'], \
+                stats_intensity['mean'], \
+                stats_intensity['median'], \
+                stats_intensity['std'], \
+                stats_loss[self.stats]
         elif self.method == 2:
             raise NotImplementedError
         else:
             raise NotImplementedError
 
     def check_fault_status(self):
+        if self.lasering:
+            MPS_PV = 'SIOC:SYS0:MP00:SC_SXR_BC'
+        else:
+            MPS_PV = 'SIOC:SYS0:MP00:SC_BSYD_BC'
+
         ts_start = time.time()
         while True:
             # req_rate = self.interface.get_value('TPG:SYS0:1:DST04:REQRATE')
@@ -205,7 +218,7 @@ class Environment(environment.Environment):
             # is_rate_matched = (req_rate == act_rate)
 
             permit_MPS = self.interface.get_value(
-                'SIOC:SYS0:MP00:SC_SXR_BC', as_string=True)
+                MPS_PV, as_string=True)
             is_beam_on = (permit_MPS != 'Beam Off')
 
             # if is_rate_matched and is_beam_on:
@@ -219,6 +232,13 @@ class Environment(environment.Environment):
 
                 time.sleep(0.1 * np.random.rand())
 
+    def is_sxr_pulse_intensity_observed(self, observable_names):
+        return len([name for name in observable_names if
+                    name.startswith('sxr_pulse_intensity')])
+
+    def is_beam_loss_observed(self, observable_names):
+        return 'beam_loss' in observable_names
+
     def get_observables(self, observable_names: list[str]) -> dict:
         if self.interface is None:
             raise BadgerNoInterfaceError
@@ -226,13 +246,21 @@ class Environment(environment.Environment):
         # Make sure machine is not in a fault state
         self.check_fault_status()
 
-        if ('sxr_pulse_intensity' in observable_names) or ('beam_loss' in observable_names):
-            intensity, loss = self.get_intensity_n_loss()
+        if self.is_sxr_pulse_intensity_observed(observable_names) or \
+           self.is_beam_loss_observed(observable_names):
+            intensity_p80, intensity_mean, intensity_median, intensity_std, \
+                loss = self.get_intensity_n_loss()
 
         observable_outputs = {}
         for obs in observable_names:
-            if obs == 'sxr_pulse_intensity':
-                value = intensity
+            if obs == 'sxr_pulse_intensity_p80':
+                value = intensity_p80
+            elif obs == 'sxr_pulse_intensity_mean':
+                value = intensity_mean
+            elif obs == 'sxr_pulse_intensity_median':
+                value = intensity_median
+            elif obs == 'sxr_pulse_intensity_std':
+                value = intensity_std
             elif obs == 'beam_loss':
                 value = loss
             elif obs == 'beamsize_x':
