@@ -60,17 +60,22 @@ class Environment(environment.Environment):
         'beamsize_y',
         'beamsize_r',
         'beamsize_g',
-        'hxr_pulse_intensity',
-        'sxr_pulse_intensity',
+        'pulse_intensity_p80',
+        'pulse_intensity_mean',
+        'pulse_intensity_median',
+        'pulse_intensity_std',
+        'beam_loss',
         'pulse_id'
     ]
 
     # Env params
-    readonly: bool = False
     points: int = 120
-    losses_fname: str = None
-    stats: str = 'percent_80'
-    beamsize_monitor: str = '541'
+    hxr: bool = True  # if HXR is used
+
+    fel_channel: str = '361'  # FEL channel for the HXR gas detector
+    beamsize_monitor: str = '541'  # BPM channel for beam size
+    loss_pv: str = 'LBLM:COL0:862:A:I0_LOSSHSTSCS'  # PV name for loss monitor
+
     use_check_var: bool = True  # if check var reaches the target value
     trim_delay: float = 3.0  # in second
     fault_timeout: float = 5.0  # in second
@@ -134,11 +139,104 @@ class Environment(environment.Environment):
             if time_elapsed > timeout:
                 break
 
+    def get_intensity_n_loss(self):
+        # At lcls the repetition is 120 Hz and the readout buf size is 2800.
+        # The last 120 entries correspond to pulse energies over past 1 second.
+        hxr = self.hxr
+
+        points = self.points
+        logging.info(f'Get value of {points} points')
+
+        # Sleep for a while to get enough data
+        try:
+            rate = self.interface.get_value('EVNT:SYS0:1:LCLSBEAMRATE')
+            logging.info(f'Beam rate: {rate}')
+            nap_time = points / (rate * 1.0)
+        except Exception as e:
+            nap_time = 1
+            logging.warn(
+                'Something went wrong with the beam rate calculation. Let\'s sleep 1 second.')
+            logging.warn(f'Exception was: {e}')
+
+        time.sleep(nap_time)
+
+        if hxr:
+            PV_gas = f'GDET:FEE1:{self.fel_channel}:ENRCHSTCUHBR'
+        else:  # SXR
+            PV_gas = 'EM1K0:GMD:HPS:milliJoulesPerPulseHSTCUSBR'
+        PV_loss = self.loss_pv
+        try:
+            results_dict = self.interface.get_values([PV_gas, PV_loss])
+            intensity_raw = results_dict[PV_gas][-points:]
+            loss_raw = results_dict[PV_loss][-points:]
+            ind_valid = ~np.logical_or(np.isnan(intensity_raw), np.isnan(loss_raw))
+            intensity_valid = intensity_raw[ind_valid]
+            loss_valid = loss_raw[ind_valid]
+
+            gas_p80 = percent_80(intensity_valid)
+            gas_mean = np.mean(intensity_valid)
+            gas_median = np.median(intensity_valid)
+            gas_std = np.std(intensity_valid)
+
+            loss_p80 = percent_80(loss_valid)
+
+            return gas_p80, gas_mean, gas_median, gas_std, loss_p80
+        except Exception:  # if average fails use the scalar input
+            if hxr:  # we don't have scalar input for HXR
+                raise BadgerEnvObsError
+            else:
+                gas = self.interface.get_value('EM1K0:GMD:HPS:milliJoulesPerPulse')
+
+                return gas, gas, gas, 0, 0
+
+    def get_loss(self):  # if only loss is observed
+        points = self.points
+        logging.info(f'Get value of {points} points')
+
+        try:
+            rate = self.interface.get_value('EVNT:SYS0:1:LCLSBEAMRATE')
+            logging.info(f'Beam rate: {rate}')
+            nap_time = points / (rate * 1.0)
+        except Exception as e:
+            nap_time = 1
+            logging.warn(
+                'Something went wrong with the beam rate calculation. Let\'s sleep 1 second.')
+            logging.warn(f'Exception was: {e}')
+
+        time.sleep(nap_time)
+
+        PV_loss = self.loss_pv
+        try:
+            loss_raw = self.interface.get_value(PV_loss)[-points:]
+            ind_valid = ~np.isnan(loss_raw)
+            loss_valid = loss_raw[ind_valid]
+            loss_p80 = percent_80(loss_valid)
+
+            return loss_p80
+        except Exception:  # we don't have scalar input for loss
+            raise BadgerEnvObsError
+
+    def is_pulse_intensity_observed(self, observable_names):
+        return len([name for name in observable_names if
+                    name.startswith('pulse_intensity')])
+
+    def is_beam_loss_observed(self, observable_names):
+        return 'beam_loss' in observable_names
+
     def get_observables(self, observable_names: List[str]) -> Dict:
         assert self.interface, 'Must provide an interface!'
 
         # Make sure machine is not in a fault state
         self.check_fault_status()
+
+        observe_gas = self.is_pulse_intensity_observed(observable_names)
+        observe_loss = self.is_beam_loss_observed(observable_names)
+
+        if observe_gas:
+            intensity_p80, intensity_mean, intensity_median, intensity_std, \
+                loss_p80 = self.get_intensity_n_loss()
+        elif observe_loss:
+            loss_p80 = self.get_loss()
 
         observable_outputs = {}
         mid = self.beamsize_monitor
@@ -163,83 +261,16 @@ class Environment(environment.Environment):
                 bs_x = self.interface.get_value(f'OTRS:IN20:{mid}:XRMS')
                 bs_y = self.interface.get_value(f'OTRS:IN20:{mid}:YRMS')
                 value = np.sqrt(bs_x * bs_y)
-            elif obs == 'hxr_pulse_intensity':
-                # At lcls the repetition is 120 Hz and the readout buf size is 2800.
-                # The last 120 entries correspond to pulse energies over past 1 second.
-                points = self.points
-                logging.info(f'Get Value of {points} points')
-
-                try:
-                    rate = self.interface.get_value('EVNT:SYS0:1:LCLSBEAMRATE')
-                    logging.info(f'Beam rate: {rate}')
-                    nap_time = points / (rate * 1.0)
-                except Exception as e:
-                    nap_time = 1
-                    logging.warn(
-                        'Something went wrong with the beam rate calculation. Let\'s sleep 1 second.')
-                    logging.warn(f'Exception was: {e}')
-
-                time.sleep(nap_time)
-
-                data_raw = self.interface.get_value('GDET:FEE1:241:ENRCHSTCUHBR')
-                try:
-                    data = data_raw[-points:]
-                    obj_tar = percent_80(data)
-                    obj_mean = np.mean(data)
-                    obj_stdev = np.std(data)
-                except:  # if average fails use the scalar input
-                    logging.warn(
-                        'Detector is not a waveform PV, using scalar value')
-                    obj_tar = data_raw
-                    obj_mean = data_raw
-                    obj_stdev = -1
-
-                stats_dict = {
-                    'percent_80': obj_tar,
-                    'mean': obj_mean,
-                    'stdev': obj_stdev,
-                }
-
-                value = stats_dict[self.stats]
-            elif obs == 'sxr_pulse_intensity':
-                # At lcls the repetition is 120 Hz and the readout buf size is 2800.
-                # The last 120 entries correspond to pulse energies over past 1 second.
-                points = self.points
-                logging.info(f'Get Value of {points} points')
-
-                try:
-                    rate = self.interface.get_value('EVNT:SYS0:1:LCLSBEAMRATE')
-                    logging.info(f'Beam rate: {rate}')
-                    nap_time = points / (rate * 1.0)
-                except Exception as e:
-                    nap_time = 1
-                    logging.warn(
-                        'Something went wrong with the beam rate calculation. Let\'s sleep 1 second.')
-                    logging.warn(f'Exception was: {e}')
-
-                time.sleep(nap_time)
-
-                data_scalar = self.interface.get_value('EM1K0:GMD:HPS:milliJoulesPerPulse')
-                data_raw = self.interface.get_value('EM1K0:GMD:HPS:milliJoulesPerPulseHSTCUSBR')
-                try:
-                    data = data_raw[-points:]
-                    obj_tar = percent_80(data)
-                    obj_mean = np.mean(data)
-                    obj_stdev = np.std(data)
-                except:  # if average fails use the scalar input
-                    logging.warn(
-                        'Detector is not a waveform PV, using scalar value')
-                    obj_tar = data_scalar
-                    obj_mean = data_scalar
-                    obj_stdev = -1
-
-                stats_dict = {
-                    'percent_80': obj_tar,
-                    'mean': obj_mean,
-                    'stdev': obj_stdev,
-                }
-
-                value = stats_dict[self.stats]
+            elif obs == 'beam_loss':
+                return loss_p80
+            elif obs == 'pulse_intensity_p80':
+                return intensity_p80
+            elif obs == 'pulse_intensity_mean':
+                return intensity_mean
+            elif obs == 'pulse_intensity_median':
+                return intensity_median
+            elif obs == 'pulse_intensity_std':
+                return intensity_std
             elif obs == 'pulse_id':
                 value = self.interface.get_value('PATT:SYS0:1:PULSEID')
             else:  # won't happen actually
@@ -322,20 +353,27 @@ class Environment(environment.Environment):
             'QUAD:IN20:122:BCTRL',
         ]
 
-        states_general = self.interface.get_values(general_pvs)
-        states_quads = self.interface.get_values(matching_quads)
+        try:
+            states_general = self.interface.get_values(general_pvs)
+            states_quads = self.interface.get_values(matching_quads)
 
-        system_states = {
-            'HXR electron energy [GeV]': states_general['BEND:DMPH:400:BDES'],
-            'HXR photon energy [eV]': round(states_general['SIOC:SYS0:ML00:AO627']),
-            'SXR electron energy [GeV]': states_general['BEND:DMPS:400:BDES'],
-            'SXR photon energy [eV]': round(states_general['SIOC:SYS0:ML00:AO628']),
-            'Rate [Hz]': self.interface.get_value('IOC:IN20:EV01:RG02_DESRATE', as_string=True),
-            'Charge at gun [pC]': ignore_small_value(states_general['SIOC:SYS0:ML00:CALC038']),
-            'Charge after BC1 [pC]': ignore_small_value(states_general['SIOC:SYS0:ML00:CALC252']),
-            'Charge at HXR dump [pC]': ignore_small_value(states_general['BPMS:DMPH:693:TMITCUH1H'] * 1.602e-7),
-            'Charge at SXR dump [pC]': ignore_small_value(states_general['BPMS:DMPS:693:TMITCUS1H'] * 1.602e-7),
-        }
-        system_states.update(states_quads)
+            system_states = {
+                'HXR electron energy [GeV]': states_general['BEND:DMPH:400:BDES'],
+                'HXR photon energy [eV]': round(states_general['SIOC:SYS0:ML00:AO627']),
+                'SXR electron energy [GeV]': states_general['BEND:DMPS:400:BDES'],
+                'SXR photon energy [eV]': round(states_general['SIOC:SYS0:ML00:AO628']),
+                'Rate [Hz]': self.interface.get_value('IOC:IN20:EV01:RG02_DESRATE', as_string=True),
+                'Charge at gun [pC]': ignore_small_value(states_general['SIOC:SYS0:ML00:CALC038']),
+                'Charge after BC1 [pC]': ignore_small_value(states_general['SIOC:SYS0:ML00:CALC252']),
+                'Charge at HXR dump [pC]': ignore_small_value(states_general['BPMS:DMPH:693:TMITCUH1H'] * 1.602e-7),
+                'Charge at SXR dump [pC]': ignore_small_value(states_general['BPMS:DMPS:693:TMITCUS1H'] * 1.602e-7),
+            }
+            system_states.update(states_quads)
+        except Exception as e:
+            logging.warn(
+                'Failed to get system states, will not save the requested system states.')
+            logging.warn(f'Exception was: {e}')
+
+            system_states = None
 
         return system_states

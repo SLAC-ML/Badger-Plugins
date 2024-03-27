@@ -5,4 +5,4 @@ dependencies:
   - numpy
   - badger-opt
 interface:
-  - epics
+  - epics_raw
